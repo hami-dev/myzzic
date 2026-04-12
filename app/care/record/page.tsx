@@ -9,7 +9,13 @@ export default function CleaningRecordPage() {
   const router = useRouter()
   const [types, setTypes] = useState<CleaningType[]>([])
   const [selectedTypeIds, setSelectedTypeIds] = useState<Set<string>>(new Set())
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => {
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, '0')
+    const d = String(now.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  })
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -29,6 +35,17 @@ export default function CleaningRecordPage() {
     e.preventDefault()
     if (selectedTypeIds.size === 0) {
       setError('청소 종류를 하나 이상 선택해주세요')
+      return
+    }
+    const existing = await localSupplyStorage.getCleaningRecords()
+    const duplicates = [...selectedTypeIds].filter((typeId) =>
+      existing.some((r) => r.cleaningTypeId === typeId && r.date === date)
+    )
+    if (duplicates.length > 0) {
+      const duplicateNames = duplicates
+        .map((id) => types.find((t) => t.id === id)?.name ?? id)
+        .join(', ')
+      setError(`이미 기록된 항목이 있어요: ${duplicateNames}`)
       return
     }
     const saveAll = [...selectedTypeIds].map((typeId) =>

@@ -26,17 +26,18 @@ export default function CarePage() {
 
   useEffect(() => { load() }, [])
 
-  const toDateStr = (date: Date) => date.toISOString().split('T')[0]
+  const toDateStr = (date: Date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
 
   // 날짜에 기록 있는지 확인
   const recordDates = new Set(records.map((r) => r.date))
 
   const selectedDateStr = toDateStr(selectedDate)
   const selectedRecords = records.filter((r) => r.date === selectedDateStr)
-  const selectedTypeNames = selectedRecords.map((r) => {
-    const type = cleaningTypes.find((t) => t.id === r.cleaningTypeId)
-    return type?.name ?? '알 수 없음'
-  })
 
   const handleDeleteRecord = async (id: string) => {
     await localSupplyStorage.deleteCleaningRecord(id)
@@ -91,9 +92,11 @@ export default function CarePage() {
           </div>
         ) : (
           <ul className="space-y-2">
-            {selectedRecords.map((record, i) => (
+            {selectedRecords.map((record) => {
+              const typeName = cleaningTypes.find((t) => t.id === record.cleaningTypeId)?.name ?? '알 수 없음'
+              return (
               <li key={record.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                <span className="text-sm font-medium text-gray-800">{selectedTypeNames[i]}</span>
+                <span className="text-sm font-medium text-gray-800">{typeName}</span>
                 <button
                   onClick={() => handleDeleteRecord(record.id)}
                   className="text-gray-300 hover:text-red-400 transition-colors"
@@ -104,7 +107,8 @@ export default function CarePage() {
                   </svg>
                 </button>
               </li>
-            ))}
+              )
+            })}
           </ul>
         )}
       </section>

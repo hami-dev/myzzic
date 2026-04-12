@@ -39,6 +39,13 @@ export default function CategoriesPage() {
   }
 
   const handleDelete = async (id: string) => {
+    const foods = await localSupplyStorage.getFoods()
+    const related = foods.filter((f) => f.categoryId === id)
+    if (related.length > 0) {
+      const ok = window.confirm(`이 카테고리에 속한 식품 ${related.length}개도 함께 삭제됩니다. 계속할까요?`)
+      if (!ok) return
+      await Promise.all(related.map((f) => localSupplyStorage.deleteFood(f.id)))
+    }
     await localSupplyStorage.deleteCategory(id)
     load()
   }
