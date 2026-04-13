@@ -53,7 +53,7 @@ export default function CarePage() {
           <Link href="/care/types" className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-600 shadow-sm">
             청소 종류
           </Link>
-          <Link href="/care/record" className="rounded-xl bg-green-600 px-3 py-1.5 text-xs text-white shadow-sm">
+          <Link href={`/care/record?date=${selectedDateStr}`} className="rounded-xl bg-green-600 px-3 py-1.5 text-xs text-white shadow-sm">
             + 기록
           </Link>
         </div>

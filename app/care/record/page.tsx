@@ -1,16 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import type { CleaningType } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
 export default function CleaningRecordPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [types, setTypes] = useState<CleaningType[]>([])
   const [selectedTypeIds, setSelectedTypeIds] = useState<Set<string>>(new Set())
   const [date, setDate] = useState(() => {
+    // 캘린더에서 선택한 날짜가 있으면 그걸 사용, 없으면 오늘
+    const fromCalendar = searchParams.get('date')
+    if (fromCalendar) return fromCalendar
     const now = new Date()
     const y = now.getFullYear()
     const m = String(now.getMonth() + 1).padStart(2, '0')
