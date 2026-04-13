@@ -103,6 +103,7 @@ function CleaningRecordForm() {
               <input
                 type="date"
                 value={date}
+                max={todayStr()}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 focus:border-green-500 focus:outline-none"
               />

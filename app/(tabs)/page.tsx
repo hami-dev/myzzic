@@ -38,7 +38,7 @@ export default function HomePage() {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
 
       const daysSince = lastRecord
-        ? Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24))
+        ? Math.max(0, Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24)))
         : null
 
       return { type, daysSince }
