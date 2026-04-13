@@ -1,6 +1,7 @@
 import type { Food, FoodCategory, CleaningType, CleaningRecord } from '@/app/types'
 import type { ISupplyStorage } from './storage.interface'
 
+// 네임스페이스 prefix('myzzic:')로 다른 앱의 localStorage 키와 충돌 방지
 const KEYS = {
   categories: 'myzzic:categories',
   foods: 'myzzic:foods',
@@ -8,6 +9,14 @@ const KEYS = {
   cleaningRecords: 'myzzic:cleaningRecords',
 } as const
 
+/**
+ * localStorage에서 JSON 배열을 읽어온다.
+ * SSR(서버 사이드 렌더링) 환경에서는 window가 없으므로 빈 배열을 반환.
+ * JSON 파싱 실패 시(데이터 손상 등) 빈 배열로 안전하게 복구.
+ *
+ * @param key - KEYS 상수에 정의된 localStorage 키
+ * @returns 저장된 데이터 배열. 없거나 오류 시 빈 배열
+ */
 function read<T>(key: string): T[] {
   if (typeof window === 'undefined') return []
   try {
@@ -17,10 +26,24 @@ function read<T>(key: string): T[] {
   }
 }
 
+/**
+ * 데이터 배열을 JSON 직렬화해 localStorage에 저장한다.
+ *
+ * @param key - KEYS 상수에 정의된 localStorage 키
+ * @param data - 저장할 데이터 배열
+ */
 function write<T>(key: string, data: T[]): void {
   localStorage.setItem(key, JSON.stringify(data))
 }
 
+/**
+ * localStorage 기반 ISupplyStorage 구현체.
+ * 추후 Supabase 전환 시 이 객체를 SupabaseSupplyStorage로 교체하면 됨.
+ *
+ * save* 메서드는 upsert 방식으로 동작:
+ * - id가 이미 존재하면 덮어쓰기(update)
+ * - 없으면 새로 추가(insert)
+ */
 export const localSupplyStorage: ISupplyStorage = {
   async getCategories() {
     return read<FoodCategory>(KEYS.categories)

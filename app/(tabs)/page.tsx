@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import type { Food, CleaningType, CleaningRecord } from '@/app/types'
 import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils/expiry'
+import { DEFAULT_COLOR, CLEANING_WARNING_DAYS, CLEANING_CAUTION_DAYS } from '@/app/utils/cleaning'
 
 export default function HomePage() {
   const [foods, setFoods] = useState<Food[]>([])
@@ -23,21 +24,27 @@ export default function HomePage() {
     })
   }, [])
 
-  const urgentFoods = foods
-    .filter((f) => ['expired', 'critical', 'warning'].includes(getExpiryStatus(f.expiresAt)))
-    .sort((a, b) => getDaysUntilExpiry(a.expiresAt) - getDaysUntilExpiry(b.expiresAt))
+  const urgentFoods = useMemo(() =>
+    foods
+      .filter((f) => ['expired', 'critical', 'warning'].includes(getExpiryStatus(f.expiresAt)))
+      .sort((a, b) => getDaysUntilExpiry(a.expiresAt) - getDaysUntilExpiry(b.expiresAt)),
+    [foods]
+  )
 
-  const cleaningSummary = cleaningTypes.map((type) => {
-    const lastRecord = records
-      .filter((r) => r.cleaningTypeId === type.id)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+  const cleaningSummary = useMemo(() =>
+    cleaningTypes.map((type) => {
+      const lastRecord = records
+        .filter((r) => r.cleaningTypeId === type.id)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
 
-    const daysSince = lastRecord
-      ? Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24))
-      : null
+      const daysSince = lastRecord
+        ? Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24))
+        : null
 
-    return { type, daysSince }
-  })
+      return { type, daysSince }
+    }),
+    [cleaningTypes, records]
+  )
 
   const statusColors: Record<string, string> = {
     expired: 'bg-red-100 text-red-700',
@@ -91,11 +98,14 @@ export default function HomePage() {
           <ul className="space-y-2">
             {cleaningSummary.map(({ type, daysSince }) => (
               <li key={type.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                <span className="text-sm font-medium text-gray-800">{type.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: type.color ?? DEFAULT_COLOR }} />
+                  <span className="text-sm font-medium text-gray-800">{type.name}</span>
+                </div>
                 <span className={`text-xs font-semibold ${
                   daysSince === null ? 'text-gray-400' :
-                  daysSince >= 14 ? 'text-red-500' :
-                  daysSince >= 7 ? 'text-orange-500' : 'text-green-600'
+                  daysSince >= CLEANING_WARNING_DAYS ? 'text-red-500' :
+                  daysSince >= CLEANING_CAUTION_DAYS ? 'text-orange-500' : 'text-green-600'
                 }`}>
                   {daysSince === null ? '기록 없음' : daysSince === 0 ? '오늘' : `${daysSince}일 전`}
                 </span>

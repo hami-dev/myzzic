@@ -17,6 +17,7 @@ export type ExpiryStatus = 'expired' | 'critical' | 'warning' | 'fresh'
 export interface CleaningType {
   id: string
   name: string
+  color?: string  // hex 색상 (예: '#ef4444'). 미설정 시 DEFAULT_COLOR 사용
   createdAt: string
 }
 

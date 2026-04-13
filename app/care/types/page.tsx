@@ -4,13 +4,60 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import type { CleaningType } from '@/app/types'
+import { DEFAULT_COLOR } from '@/app/utils/cleaning'
+
+const PRESET_COLORS = [
+  { value: '#ef4444', label: '빨강' },
+  { value: '#f97316', label: '주황' },
+  { value: '#eab308', label: '노랑' },
+  { value: '#22c55e', label: '초록' },
+  { value: '#3b82f6', label: '파랑' },
+  { value: '#8b5cf6', label: '보라' },
+  { value: '#ec4899', label: '분홍' },
+  { value: '#6b7280', label: '회색' },
+]
+
+function ColorPicker({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (color: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {PRESET_COLORS.map(({ value: colorValue, label }) => (
+        <button
+          key={colorValue}
+          type="button"
+          onClick={() => onChange(colorValue)}
+          className="h-7 w-7 rounded-full transition-transform active:scale-90"
+          style={{ backgroundColor: colorValue, outline: value === colorValue ? `3px solid ${colorValue}` : 'none', outlineOffset: '2px' }}
+          aria-label={label}
+        />
+      ))}
+      {/* 커스텀 컬러 */}
+      <label className="relative h-7 w-7 cursor-pointer rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+        <span className="text-gray-400 text-xs">+</span>
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+        />
+      </label>
+    </div>
+  )
+}
 
 export default function CleaningTypesPage() {
   const router = useRouter()
   const [types, setTypes] = useState<CleaningType[]>([])
   const [input, setInput] = useState('')
+  const [color, setColor] = useState(DEFAULT_COLOR)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editInput, setEditInput] = useState('')
+  const [editColor, setEditColor] = useState(DEFAULT_COLOR)
 
   const load = async () => {
     setTypes(await localSupplyStorage.getCleaningTypes())
@@ -23,24 +70,32 @@ export default function CleaningTypesPage() {
     await localSupplyStorage.saveCleaningType({
       id: crypto.randomUUID(),
       name: input.trim(),
+      color,
       createdAt: new Date().toISOString(),
     })
     setInput('')
-    load()
+    setColor(DEFAULT_COLOR)
+    await load()
   }
 
   const handleEdit = async (id: string) => {
     if (!editInput.trim()) return
     const type = types.find((t) => t.id === id)
     if (!type) return
-    await localSupplyStorage.saveCleaningType({ ...type, name: editInput.trim() })
+    await localSupplyStorage.saveCleaningType({ ...type, name: editInput.trim(), color: editColor })
     setEditingId(null)
-    load()
+    await load()
   }
 
   const handleDelete = async (id: string) => {
     await localSupplyStorage.deleteCleaningType(id)
-    load()
+    await load()
+  }
+
+  const startEdit = (type: CleaningType) => {
+    setEditingId(type.id)
+    setEditInput(type.name)
+    setEditColor(type.color ?? DEFAULT_COLOR)
   }
 
   return (
@@ -54,23 +109,28 @@ export default function CleaningTypesPage() {
         <h1 className="text-xl font-bold text-gray-800">청소 종류 관리</h1>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-          placeholder="예: 쳇바퀴 소독"
-          className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-green-500 focus:outline-none shadow-sm"
-        />
-        <button
-          onClick={handleAdd}
-          className="rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm active:bg-green-700"
-        >
-          추가
-        </button>
+      {/* 추가 폼 */}
+      <div className="rounded-2xl bg-white p-4 shadow-sm mb-4 space-y-3">
+        <ColorPicker value={color} onChange={setColor} />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            placeholder="예: 쳇바퀴 소독"
+            className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-green-500 focus:outline-none"
+          />
+          <button
+            onClick={handleAdd}
+            className="rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm active:bg-green-700"
+          >
+            추가
+          </button>
+        </div>
       </div>
 
+      {/* 목록 */}
       {types.length === 0 ? (
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
           청소 종류를 추가해보세요
@@ -78,25 +138,32 @@ export default function CleaningTypesPage() {
       ) : (
         <ul className="space-y-2">
           {types.map((type) => (
-            <li key={type.id} className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm">
+            <li key={type.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
               {editingId === type.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={editInput}
-                    onChange={(e) => setEditInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleEdit(type.id)}
-                    autoFocus
-                    className="flex-1 rounded-lg border border-green-400 px-2 py-1 text-sm focus:outline-none"
-                  />
-                  <button onClick={() => handleEdit(type.id)} className="text-xs text-green-600 font-medium">저장</button>
-                  <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
-                </>
+                <div className="space-y-2">
+                  <ColorPicker value={editColor} onChange={setEditColor} />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editInput}
+                      onChange={(e) => setEditInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleEdit(type.id)}
+                      autoFocus
+                      className="flex-1 rounded-lg border border-green-400 px-2 py-1 text-sm focus:outline-none"
+                    />
+                    <button onClick={() => handleEdit(type.id)} className="text-xs text-green-600 font-medium">저장</button>
+                    <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
+                  </div>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-4 w-4 shrink-0 rounded-full"
+                    style={{ backgroundColor: type.color ?? DEFAULT_COLOR }}
+                  />
                   <span className="flex-1 text-sm font-medium text-gray-800">{type.name}</span>
                   <button
-                    onClick={() => { setEditingId(type.id); setEditInput(type.name) }}
+                    onClick={() => startEdit(type)}
                     className="text-gray-300 hover:text-gray-500 transition-colors"
                     aria-label="수정"
                   >
@@ -113,7 +180,7 @@ export default function CleaningTypesPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </>
+                </div>
               )}
             </li>
           ))}

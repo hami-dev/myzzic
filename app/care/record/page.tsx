@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import type { CleaningType } from '@/app/types'
+import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
 export default function CleaningRecordPage() {
   const router = useRouter()
@@ -99,17 +100,22 @@ export default function CleaningRecordPage() {
               <div className="flex flex-wrap gap-2">
                 {types.map((type) => {
                   const selected = selectedTypeIds.has(type.id)
+                  const color = type.color ?? DEFAULT_COLOR
                   return (
                     <button
                       key={type.id}
                       type="button"
                       onClick={() => toggleType(type.id)}
-                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                        selected
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all border"
+                      style={selected
+                        ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                        : { backgroundColor: '#f3f4f6', borderColor: 'transparent', color: '#4b5563' }
+                      }
                     >
+                      <span
+                        className="h-2 w-2 rounded-full shrink-0"
+                        style={{ backgroundColor: selected ? '#fff' : color }}
+                      />
                       {type.name}
                     </button>
                   )

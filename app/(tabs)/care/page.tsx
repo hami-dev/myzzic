@@ -6,6 +6,7 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import type { CleaningType, CleaningRecord } from '@/app/types'
+import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
 type ValuePiece = Date | null
 type Value = ValuePiece | [ValuePiece, ValuePiece]
@@ -41,7 +42,7 @@ export default function CarePage() {
 
   const handleDeleteRecord = async (id: string) => {
     await localSupplyStorage.deleteCleaningRecord(id)
-    load()
+    await load()
   }
 
   return (
@@ -66,6 +67,7 @@ export default function CarePage() {
           }}
           value={selectedDate}
           locale="ko-KR"
+          formatDay={(_, date) => date.getDate().toString()}
           tileClassName={({ date }) => {
             const dateStr = toDateStr(date)
             return recordDates.has(dateStr) ? 'has-record' : null
@@ -93,10 +95,15 @@ export default function CarePage() {
         ) : (
           <ul className="space-y-2">
             {selectedRecords.map((record) => {
-              const typeName = cleaningTypes.find((t) => t.id === record.cleaningTypeId)?.name ?? '알 수 없음'
+              const type = cleaningTypes.find((t) => t.id === record.cleaningTypeId)
+              const typeName = type?.name ?? '알 수 없음'
+              const color = type?.color ?? DEFAULT_COLOR
               return (
-              <li key={record.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                <span className="text-sm font-medium text-gray-800">{typeName}</span>
+                <li key={record.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-sm font-medium text-gray-800">{typeName}</span>
+                </div>
                 <button
                   onClick={() => handleDeleteRecord(record.id)}
                   className="text-gray-300 hover:text-red-400 transition-colors"
