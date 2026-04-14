@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
+import { usePet } from '@/app/context/PetContext'
 import type { FoodCategory } from '@/app/types'
+import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
 export default function NewFoodPage() {
   const router = useRouter()
+  const { pets } = usePet()
   const [categories, setCategories] = useState<FoodCategory[]>([])
   const [categoryId, setCategoryId] = useState('')
+  const [selectedPetIds, setSelectedPetIds] = useState<Set<string>>(new Set())
   const [name, setName] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [error, setError] = useState('')
@@ -20,6 +24,15 @@ export default function NewFoodPage() {
     })
   }, [])
 
+  const togglePet = (id: string) => {
+    setSelectedPetIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!categoryId || !name.trim() || !expiresAt) {
@@ -28,7 +41,7 @@ export default function NewFoodPage() {
     }
     await localSupplyStorage.saveFood({
       id: crypto.randomUUID(),
-      petIds: [],  // Pet 선택 UI 추가 예정 (Step 4)
+      petIds: [...selectedPetIds],
       categoryId,
       name: name.trim(),
       expiresAt,
@@ -61,6 +74,40 @@ export default function NewFoodPage() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="rounded-2xl bg-white p-4 shadow-sm space-y-4">
+
+            {/* 반려동물 선택 (복수 가능, 등록된 Pet이 있을 때만 표시) */}
+            {pets.length > 0 && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-2 block">
+                  반려동물 <span className="text-gray-400 font-normal">(선택 없음 = 공유)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {pets.map((pet) => {
+                    const selected = selectedPetIds.has(pet.id)
+                    const color = pet.color ?? DEFAULT_COLOR
+                    return (
+                      <button
+                        key={pet.id}
+                        type="button"
+                        onClick={() => togglePet(pet.id)}
+                        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                        style={selected
+                          ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                          : { backgroundColor: '#f3f4f6', borderColor: 'transparent', color: '#4b5563' }
+                        }
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: selected ? '#fff' : color }}
+                        />
+                        {pet.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-medium text-gray-500 mb-1.5 block">카테고리</label>
               <select

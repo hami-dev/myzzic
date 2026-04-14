@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { localSupplyStorage } from '@/app/services/localStorage'
+import { usePet } from '@/app/context/PetContext'
 import type { Food, FoodCategory } from '@/app/types'
 import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils/expiry'
 
 export default function FoodPage() {
+  const { selectedPetId } = usePet()
   const [foods, setFoods] = useState<Food[]>([])
   const [categories, setCategories] = useState<FoodCategory[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
@@ -22,9 +24,14 @@ export default function FoodPage() {
 
   useEffect(() => { load() }, [])
 
-  const filtered = selectedCategoryId
-    ? foods.filter((f) => f.categoryId === selectedCategoryId)
+  // Pet 필터: 선택된 Pet이 있으면 해당 Pet 귀속 식품 + 미귀속(공유) 식품 표시
+  const petFiltered = selectedPetId
+    ? foods.filter((f) => f.petIds.length === 0 || f.petIds.includes(selectedPetId))
     : foods
+
+  const filtered = selectedCategoryId
+    ? petFiltered.filter((f) => f.categoryId === selectedCategoryId)
+    : petFiltered
 
   const sorted = [...filtered].sort((a, b) => getDaysUntilExpiry(a.expiresAt) - getDaysUntilExpiry(b.expiresAt))
 
