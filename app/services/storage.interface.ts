@@ -1,6 +1,11 @@
-import type { Food, FoodCategory, CleaningType, CleaningRecord } from '@/app/types'
+import type { Pet, Food, FoodCategory, CleaningType, CleaningRecord } from '@/app/types'
 
 export interface ISupplyStorage {
+  // Pets
+  getPets(): Promise<Pet[]>
+  savePet(pet: Pet): Promise<void>
+  deletePet(id: string): Promise<void>
+
   // Food categories
   getCategories(): Promise<FoodCategory[]>
   saveCategory(category: FoodCategory): Promise<void>

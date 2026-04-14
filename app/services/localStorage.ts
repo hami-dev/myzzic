@@ -1,8 +1,9 @@
-import type { Food, FoodCategory, CleaningType, CleaningRecord } from '@/app/types'
+import type { Pet, Food, FoodCategory, CleaningType, CleaningRecord } from '@/app/types'
 import type { ISupplyStorage } from './storage.interface'
 
 // 네임스페이스 prefix('myzzic:')로 다른 앱의 localStorage 키와 충돌 방지
 const KEYS = {
+  pets: 'myzzic:pets',
   categories: 'myzzic:categories',
   foods: 'myzzic:foods',
   cleaningTypes: 'myzzic:cleaningTypes',
@@ -45,6 +46,20 @@ function write<T>(key: string, data: T[]): void {
  * - 없으면 새로 추가(insert)
  */
 export const localSupplyStorage: ISupplyStorage = {
+  async getPets() {
+    return read<Pet>(KEYS.pets)
+  },
+  async savePet(pet) {
+    const list = read<Pet>(KEYS.pets)
+    const idx = list.findIndex((p) => p.id === pet.id)
+    if (idx >= 0) list[idx] = pet
+    else list.push(pet)
+    write(KEYS.pets, list)
+  },
+  async deletePet(id) {
+    write(KEYS.pets, read<Pet>(KEYS.pets).filter((p) => p.id !== id))
+  },
+
   async getCategories() {
     return read<FoodCategory>(KEYS.categories)
   },
