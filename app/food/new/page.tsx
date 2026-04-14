@@ -28,6 +28,7 @@ export default function NewFoodPage() {
     }
     await localSupplyStorage.saveFood({
       id: crypto.randomUUID(),
+      petIds: [],  // Pet 선택 UI 추가 예정 (Step 4)
       categoryId,
       name: name.trim(),
       expiresAt,

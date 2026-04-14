@@ -1,62 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { Pet } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
-
-const PRESET_COLORS = [
-  { value: '#ef4444', label: '빨강' },
-  { value: '#f97316', label: '주황' },
-  { value: '#eab308', label: '노랑' },
-  { value: '#22c55e', label: '초록' },
-  { value: '#3b82f6', label: '파랑' },
-  { value: '#8b5cf6', label: '보라' },
-  { value: '#ec4899', label: '분홍' },
-  { value: '#6b7280', label: '회색' },
-]
-
-function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {PRESET_COLORS.map(({ value: cv, label }) => (
-        <button
-          key={cv}
-          type="button"
-          onClick={() => onChange(cv)}
-          className="h-7 w-7 rounded-full transition-transform active:scale-90"
-          style={{ backgroundColor: cv, outline: value === cv ? `3px solid ${cv}` : 'none', outlineOffset: '2px' }}
-          aria-label={label}
-        />
-      ))}
-      <label className="relative h-7 w-7 cursor-pointer rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-        <span className="text-gray-400 text-xs">+</span>
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-        />
-      </label>
-    </div>
-  )
-}
+import ColorPicker from '@/app/components/ColorPicker'
 
 export default function SettingsPage() {
-  const { reload: reloadPets } = usePet()
-  const [pets, setPets] = useState<Pet[]>([])
+  const { pets, reload } = usePet()
   const [input, setInput] = useState('')
   const [color, setColor] = useState(DEFAULT_COLOR)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editInput, setEditInput] = useState('')
   const [editColor, setEditColor] = useState(DEFAULT_COLOR)
-
-  const load = async () => {
-    setPets(await localSupplyStorage.getPets())
-  }
-
-  useEffect(() => { load() }, [])
 
   const handleAdd = async () => {
     if (!input.trim()) return
@@ -68,8 +25,7 @@ export default function SettingsPage() {
     })
     setInput('')
     setColor(DEFAULT_COLOR)
-    await load()
-    await reloadPets()
+    await reload()
   }
 
   const handleEdit = async (id: string) => {
@@ -78,32 +34,28 @@ export default function SettingsPage() {
     if (!pet) return
     await localSupplyStorage.savePet({ ...pet, name: editInput.trim(), color: editColor })
     setEditingId(null)
-    await load()
-    await reloadPets()
+    await reload()
   }
 
   const handleDelete = async (id: string) => {
     // Pet 삭제 — 연관 데이터는 미귀속 상태로 보존
     await localSupplyStorage.deletePet(id)
 
-    // Food의 petIds에서 해당 id 제거
-    const foods = await localSupplyStorage.getFoods()
-    await Promise.all(
-      foods
+    // Food.petIds, CleaningType.petId 병렬로 읽어서 id 제거
+    const [foods, types] = await Promise.all([
+      localSupplyStorage.getFoods(),
+      localSupplyStorage.getCleaningTypes(),
+    ])
+    await Promise.all([
+      ...foods
         .filter((f) => f.petIds?.includes(id))
-        .map((f) => localSupplyStorage.saveFood({ ...f, petIds: f.petIds!.filter((pid) => pid !== id) }))
-    )
-
-    // CleaningType의 petId 제거
-    const types = await localSupplyStorage.getCleaningTypes()
-    await Promise.all(
-      types
+        .map((f) => localSupplyStorage.saveFood({ ...f, petIds: (f.petIds ?? []).filter((pid) => pid !== id) })),
+      ...types
         .filter((t) => t.petId === id)
-        .map((t) => localSupplyStorage.saveCleaningType({ ...t, petId: undefined }))
-    )
+        .map((t) => localSupplyStorage.saveCleaningType({ ...t, petId: undefined })),
+    ])
 
-    await load()
-    await reloadPets()
+    await reload()
   }
 
   const startEdit = (pet: Pet) => {

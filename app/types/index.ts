@@ -13,7 +13,7 @@ export interface FoodCategory {
 
 export interface Food {
   id: string
-  petIds?: string[]  // 귀속된 반려동물 id 목록. undefined | [] = 미귀속(공유)
+  petIds: string[]  // 귀속된 반려동물 id 목록. [] = 미귀속(공유)
   categoryId: string
   name: string
   expiresAt: string // ISO date string (YYYY-MM-DD)
