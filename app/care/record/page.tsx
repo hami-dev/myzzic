@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
-import type { CleaningType } from '@/app/types'
+import type { CleaningType, CleaningRecord } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
 function todayStr() {
@@ -19,10 +19,20 @@ function isValidDateStr(str: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str).getTime())
 }
 
+// 마지막 청소로부터 며칠 지났는지 계산
+function daysSinceLastRecord(typeId: string, records: CleaningRecord[]): number | null {
+  const last = records
+    .filter((r) => r.cleaningTypeId === typeId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+  if (!last) return null
+  return Math.max(0, Math.floor((Date.now() - new Date(last.date).getTime()) / (1000 * 60 * 60 * 24)))
+}
+
 function CleaningRecordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [types, setTypes] = useState<CleaningType[]>([])
+  const [records, setRecords] = useState<CleaningRecord[]>([])
   const [selectedTypeIds, setSelectedTypeIds] = useState<Set<string>>(new Set())
   const [date, setDate] = useState(() => {
     // 캘린더에서 선택한 날짜가 있으면 그걸 사용, 없으면 오늘
@@ -33,7 +43,13 @@ function CleaningRecordForm() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    localSupplyStorage.getCleaningTypes().then(setTypes)
+    Promise.all([
+      localSupplyStorage.getCleaningTypes(),
+      localSupplyStorage.getCleaningRecords(),
+    ]).then(([t, r]) => {
+      setTypes(t)
+      setRecords(r)
+    })
   }, [])
 
   const toggleType = (id: string) => {
@@ -111,30 +127,39 @@ function CleaningRecordForm() {
 
             <div>
               <label className="text-xs font-medium text-gray-500 mb-2 block">청소 종류 (복수 선택 가능)</label>
-              <div className="flex flex-wrap gap-2">
+              <ul className="space-y-1">
                 {types.map((type) => {
                   const selected = selectedTypeIds.has(type.id)
                   const color = type.color ?? DEFAULT_COLOR
+                  const days = daysSinceLastRecord(type.id, records)
+                  const daysLabel = days === null ? '기록 없음' : days === 0 ? '오늘' : `${days}일 전`
                   return (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => toggleType(type.id)}
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all border"
-                      style={selected
-                        ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                        : { backgroundColor: '#f3f4f6', borderColor: 'transparent', color: '#4b5563' }
-                      }
-                    >
-                      <span
-                        className="h-2 w-2 rounded-full shrink-0"
-                        style={{ backgroundColor: selected ? '#fff' : color }}
-                      />
-                      {type.name}
-                    </button>
+                    <li key={type.id}>
+                      <button
+                        type="button"
+                        onClick={() => toggleType(type.id)}
+                        className={`w-full flex items-center gap-3 rounded-xl px-3 py-3 transition-colors ${
+                          selected ? 'bg-gray-100' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <span className="flex-1 text-left text-sm font-medium text-gray-800">{type.name}</span>
+                        <span className="text-xs text-gray-400">{daysLabel}</span>
+                        {/* 선택 체크 */}
+                        <span className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                          selected ? 'border-green-500 bg-green-500' : 'border-gray-300'
+                        }`}>
+                          {selected && (
+                            <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                          )}
+                        </span>
+                      </button>
+                    </li>
                   )
                 })}
-              </div>
+              </ul>
             </div>
           </div>
 
