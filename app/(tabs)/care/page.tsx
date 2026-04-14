@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { localSupplyStorage } from '@/app/services/localStorage'
+import { usePet } from '@/app/context/PetContext'
 import type { CleaningType, CleaningRecord } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
@@ -12,6 +13,7 @@ type ValuePiece = Date | null
 type Value = ValuePiece | [ValuePiece, ValuePiece]
 
 export default function CarePage() {
+  const { selectedPetId } = usePet()
   const [cleaningTypes, setCleaningTypes] = useState<CleaningType[]>([])
   const [records, setRecords] = useState<CleaningRecord[]>([])
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -34,16 +36,26 @@ export default function CarePage() {
     return `${y}-${m}-${d}`
   }
 
-  // 날짜별 청소 색상 목록 (dot 렌더링용)
+  // 선택된 Pet 기준으로 청소 종류 필터 (미귀속 포함)
+  const filteredTypes = selectedPetId
+    ? cleaningTypes.filter((t) => !t.petId || t.petId === selectedPetId)
+    : cleaningTypes
+
+  const filteredTypeIds = new Set(filteredTypes.map((t) => t.id))
+
+  // 날짜별 청소 색상 목록 (dot 렌더링용, Pet 필터 적용)
   const recordColorsByDate = records.reduce<Record<string, string[]>>((acc, record) => {
-    const color = cleaningTypes.find((t) => t.id === record.cleaningTypeId)?.color ?? DEFAULT_COLOR
+    if (!filteredTypeIds.has(record.cleaningTypeId)) return acc
+    const color = filteredTypes.find((t) => t.id === record.cleaningTypeId)?.color ?? DEFAULT_COLOR
     if (!acc[record.date]) acc[record.date] = []
     acc[record.date].push(color)
     return acc
   }, {})
 
   const selectedDateStr = toDateStr(selectedDate)
-  const selectedRecords = records.filter((r) => r.date === selectedDateStr)
+  const selectedRecords = records.filter(
+    (r) => r.date === selectedDateStr && filteredTypeIds.has(r.cleaningTypeId)
+  )
 
   const handleDeleteRecord = async (id: string) => {
     await localSupplyStorage.deleteCleaningRecord(id)

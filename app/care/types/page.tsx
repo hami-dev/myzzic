@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
+import { usePet } from '@/app/context/PetContext'
 import type { CleaningType } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 import ColorPicker from '@/app/components/ColorPicker'
 
 export default function CleaningTypesPage() {
   const router = useRouter()
+  const { pets, selectedPetId } = usePet()
   const [types, setTypes] = useState<CleaningType[]>([])
   const [input, setInput] = useState('')
   const [color, setColor] = useState(DEFAULT_COLOR)
@@ -22,10 +24,16 @@ export default function CleaningTypesPage() {
 
   useEffect(() => { load() }, [])
 
+  // 선택된 Pet 기준 필터 (전체면 미귀속 포함 전체 표시)
+  const filteredTypes = selectedPetId
+    ? types.filter((t) => !t.petId || t.petId === selectedPetId)
+    : types
+
   const handleAdd = async () => {
     if (!input.trim()) return
     await localSupplyStorage.saveCleaningType({
       id: crypto.randomUUID(),
+      petId: selectedPetId ?? undefined,  // 선택된 Pet이 있으면 귀속
       name: input.trim(),
       color,
       createdAt: new Date().toISOString(),
@@ -88,13 +96,13 @@ export default function CleaningTypesPage() {
       </div>
 
       {/* 목록 */}
-      {types.length === 0 ? (
+      {filteredTypes.length === 0 ? (
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
           청소 종류를 추가해보세요
         </div>
       ) : (
         <ul className="space-y-2">
-          {types.map((type) => (
+          {filteredTypes.map((type) => (
             <li key={type.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
               {editingId === type.id ? (
                 <div className="space-y-2">

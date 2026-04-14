@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
+import { usePet } from '@/app/context/PetContext'
 import type { CleaningType, CleaningRecord } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 
@@ -31,7 +32,8 @@ function daysSinceLastRecord(typeId: string, records: CleaningRecord[]): number 
 function CleaningRecordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [types, setTypes] = useState<CleaningType[]>([])
+  const { selectedPetId } = usePet()
+  const [allTypes, setAllTypes] = useState<CleaningType[]>([])
   const [records, setRecords] = useState<CleaningRecord[]>([])
   const [selectedTypeIds, setSelectedTypeIds] = useState<Set<string>>(new Set())
   const [date, setDate] = useState(() => {
@@ -47,10 +49,15 @@ function CleaningRecordForm() {
       localSupplyStorage.getCleaningTypes(),
       localSupplyStorage.getCleaningRecords(),
     ]).then(([t, r]) => {
-      setTypes(t)
+      setAllTypes(t)
       setRecords(r)
     })
   }, [])
+
+  // 선택된 Pet 기준 필터 (미귀속 포함)
+  const types = selectedPetId
+    ? allTypes.filter((t) => !t.petId || t.petId === selectedPetId)
+    : allTypes
 
   const toggleType = (id: string) => {
     setSelectedTypeIds((prev) => {
