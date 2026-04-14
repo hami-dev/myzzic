@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { localSupplyStorage } from '@/app/services/localStorage'
+import { usePet } from '@/app/context/PetContext'
 import type { Food, CleaningType, CleaningRecord } from '@/app/types'
 import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils/expiry'
 import { DEFAULT_COLOR, CLEANING_WARNING_DAYS, CLEANING_CAUTION_DAYS } from '@/app/utils/cleaning'
 
 export default function HomePage() {
+  const { selectedPetId } = usePet()
   const [foods, setFoods] = useState<Food[]>([])
   const [cleaningTypes, setCleaningTypes] = useState<CleaningType[]>([])
   const [records, setRecords] = useState<CleaningRecord[]>([])
@@ -24,15 +26,25 @@ export default function HomePage() {
     })
   }, [])
 
+  // Pet 필터: 해당 Pet 귀속 + 미귀속(공유) 식품
+  const filteredFoods = selectedPetId
+    ? foods.filter((f) => f.petIds.length === 0 || f.petIds.includes(selectedPetId))
+    : foods
+
+  // Pet 필터: 해당 Pet 귀속 + 미귀속 청소 종류
+  const filteredTypes = selectedPetId
+    ? cleaningTypes.filter((t) => !t.petId || t.petId === selectedPetId)
+    : cleaningTypes
+
   const urgentFoods = useMemo(() =>
-    foods
+    filteredFoods
       .filter((f) => ['expired', 'critical', 'warning'].includes(getExpiryStatus(f.expiresAt)))
       .sort((a, b) => getDaysUntilExpiry(a.expiresAt) - getDaysUntilExpiry(b.expiresAt)),
-    [foods]
+    [filteredFoods]
   )
 
   const cleaningSummary = useMemo(() =>
-    cleaningTypes.map((type) => {
+    filteredTypes.map((type) => {
       const lastRecord = records
         .filter((r) => r.cleaningTypeId === type.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
