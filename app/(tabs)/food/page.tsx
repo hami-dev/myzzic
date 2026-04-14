@@ -91,7 +91,9 @@ export default function FoodPage() {
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
           {categories.length === 0
             ? '먼저 카테고리를 등록해주세요'
-            : '등록된 식품이 없어요'}
+            : selectedPetId
+              ? '이 반려동물의 식품이 없어요'
+              : '등록된 식품이 없어요'}
         </div>
       ) : (
         <ul className="space-y-2">

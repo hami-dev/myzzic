@@ -10,7 +10,7 @@ import ColorPicker from '@/app/components/ColorPicker'
 
 export default function CleaningTypesPage() {
   const router = useRouter()
-  const { pets, selectedPetId } = usePet()
+  const { selectedPetId } = usePet()
   const [types, setTypes] = useState<CleaningType[]>([])
   const [input, setInput] = useState('')
   const [color, setColor] = useState(DEFAULT_COLOR)

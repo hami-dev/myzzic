@@ -27,14 +27,20 @@ export default function HomePage() {
   }, [])
 
   // Pet 필터: 해당 Pet 귀속 + 미귀속(공유) 식품
-  const filteredFoods = selectedPetId
-    ? foods.filter((f) => f.petIds.length === 0 || f.petIds.includes(selectedPetId))
-    : foods
+  const filteredFoods = useMemo(() =>
+    selectedPetId
+      ? foods.filter((f) => f.petIds.length === 0 || f.petIds.includes(selectedPetId))
+      : foods,
+    [foods, selectedPetId]
+  )
 
   // Pet 필터: 해당 Pet 귀속 + 미귀속 청소 종류
-  const filteredTypes = selectedPetId
-    ? cleaningTypes.filter((t) => !t.petId || t.petId === selectedPetId)
-    : cleaningTypes
+  const filteredTypes = useMemo(() =>
+    selectedPetId
+      ? cleaningTypes.filter((t) => !t.petId || t.petId === selectedPetId)
+      : cleaningTypes,
+    [cleaningTypes, selectedPetId]
+  )
 
   const urgentFoods = useMemo(() =>
     filteredFoods
@@ -55,7 +61,7 @@ export default function HomePage() {
 
       return { type, daysSince }
     }),
-    [cleaningTypes, records]
+    [filteredTypes, records]
   )
 
   const statusColors: Record<string, string> = {

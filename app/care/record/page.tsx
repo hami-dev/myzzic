@@ -74,9 +74,8 @@ function CleaningRecordForm() {
       setError('청소 종류를 하나 이상 선택해주세요')
       return
     }
-    const existing = await localSupplyStorage.getCleaningRecords()
     const duplicates = [...selectedTypeIds].filter((typeId) =>
-      existing.some((r) => r.cleaningTypeId === typeId && r.date === date)
+      records.some((r) => r.cleaningTypeId === typeId && r.date === date)
     )
     if (duplicates.length > 0) {
       const duplicateNames = duplicates
