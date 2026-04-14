@@ -34,8 +34,13 @@ export default function CarePage() {
     return `${y}-${m}-${d}`
   }
 
-  // 날짜에 기록 있는지 확인
-  const recordDates = new Set(records.map((r) => r.date))
+  // 날짜별 청소 색상 목록 (dot 렌더링용)
+  const recordColorsByDate = records.reduce<Record<string, string[]>>((acc, record) => {
+    const color = cleaningTypes.find((t) => t.id === record.cleaningTypeId)?.color ?? DEFAULT_COLOR
+    if (!acc[record.date]) acc[record.date] = []
+    acc[record.date].push(color)
+    return acc
+  }, {})
 
   const selectedDateStr = toDateStr(selectedDate)
   const selectedRecords = records.filter((r) => r.date === selectedDateStr)
@@ -70,15 +75,18 @@ export default function CarePage() {
           formatDay={(_, date) => date.getDate().toString()}
           tileClassName={({ date }) => {
             const dateStr = toDateStr(date)
-            return recordDates.has(dateStr) ? 'has-record' : null
+            return recordColorsByDate[dateStr] ? 'has-record' : null
           }}
           tileContent={({ date }) => {
-            const dateStr = toDateStr(date)
-            return recordDates.has(dateStr) ? (
-              <div className="flex justify-center mt-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+            const colors = recordColorsByDate[toDateStr(date)]
+            if (!colors) return null
+            return (
+              <div className="flex justify-center gap-0.5 mt-0.5">
+                {colors.map((color, i) => (
+                  <span key={i} className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                ))}
               </div>
-            ) : null
+            )
           }}
         />
       </div>
