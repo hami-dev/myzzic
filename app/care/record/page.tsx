@@ -144,12 +144,12 @@ function CleaningRecordForm() {
                       >
                         <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
                         <span className="flex-1 text-left text-sm font-medium text-gray-800">{type.name}</span>
-                        <span className="text-xs text-gray-400">{daysLabel}</span>
-                        {/* 선택 시에만 체크 아이콘 표시 */}
-                        {selected && (
+                        {selected ? (
                           <svg className="h-4 w-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                           </svg>
+                        ) : (
+                          <span className="text-xs text-gray-400">{daysLabel}</span>
                         )}
                       </button>
                     </li>
