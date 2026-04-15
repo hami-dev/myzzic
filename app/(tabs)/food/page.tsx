@@ -44,7 +44,7 @@ export default function FoodPage() {
 
   const handleDelete = async (id: string) => {
     await localSupplyStorage.deleteFood(id)
-    load()
+    await load()
   }
 
   return (

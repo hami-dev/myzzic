@@ -39,15 +39,19 @@ export default function NewFoodPage() {
       setError('모든 항목을 입력해주세요')
       return
     }
-    await localSupplyStorage.saveFood({
-      id: crypto.randomUUID(),
-      petIds: [...selectedPetIds],
-      categoryId,
-      name: name.trim(),
-      expiresAt,
-      createdAt: new Date().toISOString(),
-    })
-    router.back()
+    try {
+      await localSupplyStorage.saveFood({
+        id: crypto.randomUUID(),
+        petIds: [...selectedPetIds],
+        categoryId,
+        name: name.trim(),
+        expiresAt,
+        createdAt: new Date().toISOString(),
+      })
+      router.back()
+    } catch {
+      setError('저장 중 오류가 발생했어요. 다시 시도해주세요.')
+    }
   }
 
   return (

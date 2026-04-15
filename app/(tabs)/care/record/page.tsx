@@ -83,7 +83,7 @@ function CleaningRecordForm() {
     const duplicates = [...selectedKeys].filter((key) => {
       const { typeId, petId } = parseKey(key)
       return records.some(
-        (r) => r.cleaningTypeId === typeId && r.date === date && (r.petId ?? '') === (petId ?? '')
+        (r) => r.cleaningTypeId === typeId && r.date === date && r.petId === petId
       )
     })
     if (duplicates.length > 0) {
