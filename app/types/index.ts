@@ -33,6 +33,7 @@ export interface CleaningType {
 export interface CleaningRecord {
   id: string
   cleaningTypeId: string
+  petId?: string  // 기록한 반려동물 id. 공통 타입도 펫별 독립 기록 가능. undefined = 레거시(공유)
   date: string // ISO date string (YYYY-MM-DD)
   createdAt: string
 }

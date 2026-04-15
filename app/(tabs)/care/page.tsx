@@ -55,18 +55,18 @@ export default function CarePage() {
   const isGrouped = !selectedPetId && pets.length > 1
 
   const selectedDateStr = toDateStr(selectedDate)
-  const selectedRecords = records.filter(
-    (r) => r.date === selectedDateStr && filteredTypeIds.has(r.cleaningTypeId)
-  )
+  const selectedRecords = records.filter((r) => {
+    if (r.date !== selectedDateStr || !filteredTypeIds.has(r.cleaningTypeId)) return false
+    // 특정 펫 선택 시: 해당 펫 기록 + 레거시(petId 없는) 기록
+    if (selectedPetId) return r.petId === selectedPetId || !r.petId
+    return true
+  })
 
-  // 펫별 그룹핑: 각 펫에 귀속된 기록 + 공유 기록
+  // 펫별 그룹핑: petId로 직접 매칭 + 레거시(petId 없는) 기록은 모든 펫에 표시
   const groupedRecords = isGrouped
     ? pets.map((pet) => ({
         pet,
-        records: selectedRecords.filter((r) => {
-          const type = filteredTypes.find((t) => t.id === r.cleaningTypeId)
-          return !type?.petId || type.petId === pet.id
-        }),
+        records: selectedRecords.filter((r) => r.petId === pet.id || !r.petId),
       }))
     : null
 

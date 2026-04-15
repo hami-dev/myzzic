@@ -8,10 +8,15 @@ import type { Food, CleaningType, CleaningRecord } from '@/app/types'
 import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils/expiry'
 import { DEFAULT_COLOR, CLEANING_WARNING_DAYS, CLEANING_CAUTION_DAYS } from '@/app/utils/cleaning'
 
-function toSummary(types: CleaningType[], records: CleaningRecord[]) {
+// petId를 넘기면 해당 펫 기록만 기준으로 경과일 계산 (레거시 petId 없는 기록도 포함)
+function toSummary(types: CleaningType[], records: CleaningRecord[], petId?: string) {
   return types.map((type) => {
     const lastRecord = records
-      .filter((r) => r.cleaningTypeId === type.id)
+      .filter((r) => {
+        if (r.cleaningTypeId !== type.id) return false
+        if (petId) return r.petId === petId || !r.petId
+        return true
+      })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
     const daysSince = lastRecord
       ? Math.max(0, Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24)))
@@ -61,14 +66,14 @@ export default function HomePage() {
     const types = selectedPetId
       ? cleaningTypes.filter((t) => !t.petId || t.petId === selectedPetId)
       : cleaningTypes
-    return toSummary(types, records)
+    return toSummary(types, records, selectedPetId ?? undefined)
   }, [isGrouped, selectedPetId, cleaningTypes, records])
 
   const groupedCleaningSummary = useMemo(() => {
     if (!isGrouped) return []
     return pets.map((pet) => ({
       pet,
-      items: toSummary(cleaningTypes.filter((t) => !t.petId || t.petId === pet.id), records),
+      items: toSummary(cleaningTypes.filter((t) => !t.petId || t.petId === pet.id), records, pet.id),
     }))
   }, [isGrouped, pets, cleaningTypes, records])
 
