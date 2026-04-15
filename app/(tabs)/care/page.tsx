@@ -13,7 +13,7 @@ type ValuePiece = Date | null
 type Value = ValuePiece | [ValuePiece, ValuePiece]
 
 export default function CarePage() {
-  const { selectedPetId } = usePet()
+  const { selectedPetId, pets } = usePet()
   const [cleaningTypes, setCleaningTypes] = useState<CleaningType[]>([])
   const [records, setRecords] = useState<CleaningRecord[]>([])
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -52,10 +52,23 @@ export default function CarePage() {
     return acc
   }, {})
 
+  const isGrouped = !selectedPetId && pets.length > 1
+
   const selectedDateStr = toDateStr(selectedDate)
   const selectedRecords = records.filter(
     (r) => r.date === selectedDateStr && filteredTypeIds.has(r.cleaningTypeId)
   )
+
+  // 펫별 그룹핑: 각 펫에 귀속된 기록 + 공유 기록
+  const groupedRecords = isGrouped
+    ? pets.map((pet) => ({
+        pet,
+        records: selectedRecords.filter((r) => {
+          const type = filteredTypes.find((t) => t.id === r.cleaningTypeId)
+          return !type?.petId || type.petId === pet.id
+        }),
+      }))
+    : null
 
   const handleDeleteRecord = async (id: string) => {
     await localSupplyStorage.deleteCleaningRecord(id)
@@ -108,37 +121,82 @@ export default function CarePage() {
         <h2 className="text-sm font-semibold text-gray-500 mb-2">
           {selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 기록
         </h2>
-        {selectedRecords.length === 0 ? (
+        {groupedRecords ? (
+          groupedRecords.every((g) => g.records.length === 0) ? (
+            <div className="rounded-2xl bg-white p-4 text-center text-sm text-gray-400 shadow-sm">
+              이 날의 기록이 없어요
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {groupedRecords.map(({ pet, records: petRecords }) => (
+                <div key={pet.id}>
+                  <p className="text-xs font-semibold text-gray-400 mb-1.5 px-1">{pet.name}</p>
+                  {petRecords.length === 0 ? (
+                    <div className="rounded-2xl bg-white px-4 py-3 text-sm text-gray-300 shadow-sm">
+                      기록 없음
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {petRecords.map((record) => (
+                        <RecordItem
+                          key={record.id}
+                          record={record}
+                          cleaningTypes={cleaningTypes}
+                          onDelete={handleDeleteRecord}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        ) : selectedRecords.length === 0 ? (
           <div className="rounded-2xl bg-white p-4 text-center text-sm text-gray-400 shadow-sm">
             이 날의 기록이 없어요
           </div>
         ) : (
           <ul className="space-y-2">
-            {selectedRecords.map((record) => {
-              const type = cleaningTypes.find((t) => t.id === record.cleaningTypeId)
-              const typeName = type?.name ?? '알 수 없음'
-              const color = type?.color ?? DEFAULT_COLOR
-              return (
-                <li key={record.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-sm font-medium text-gray-800">{typeName}</span>
-                </div>
-                <button
-                  onClick={() => handleDeleteRecord(record.id)}
-                  className="text-gray-300 hover:text-red-400 transition-colors"
-                  aria-label="삭제"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </li>
-              )
-            })}
+            {selectedRecords.map((record) => (
+              <RecordItem
+                key={record.id}
+                record={record}
+                cleaningTypes={cleaningTypes}
+                onDelete={handleDeleteRecord}
+              />
+            ))}
           </ul>
         )}
       </section>
     </div>
+  )
+}
+
+function RecordItem({
+  record,
+  cleaningTypes,
+  onDelete,
+}: {
+  record: CleaningRecord
+  cleaningTypes: CleaningType[]
+  onDelete: (id: string) => void
+}) {
+  const type = cleaningTypes.find((t) => t.id === record.cleaningTypeId)
+  return (
+    <li className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
+      <div className="flex items-center gap-2">
+        <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: type?.color ?? DEFAULT_COLOR }} />
+        <span className="text-sm font-medium text-gray-800">{type?.name ?? '알 수 없음'}</span>
+      </div>
+      <button
+        onClick={() => onDelete(record.id)}
+        className="text-gray-300 hover:text-red-400 transition-colors"
+        aria-label="삭제"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </li>
   )
 }

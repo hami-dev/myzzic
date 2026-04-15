@@ -10,10 +10,11 @@ import ColorPicker from '@/app/components/ColorPicker'
 
 export default function CleaningTypesPage() {
   const router = useRouter()
-  const { selectedPetId } = usePet()
+  const { selectedPetId, pets } = usePet()
   const [types, setTypes] = useState<CleaningType[]>([])
   const [input, setInput] = useState('')
   const [color, setColor] = useState(DEFAULT_COLOR)
+  const [newPetId, setNewPetId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editInput, setEditInput] = useState('')
   const [editColor, setEditColor] = useState(DEFAULT_COLOR)
@@ -24,7 +25,7 @@ export default function CleaningTypesPage() {
 
   useEffect(() => { load() }, [])
 
-  // 선택된 Pet 기준 필터 (전체면 미귀속 포함 전체 표시)
+  // 선택된 Pet 기준 필터 (전체면 전체 표시)
   const filteredTypes = selectedPetId
     ? types.filter((t) => !t.petId || t.petId === selectedPetId)
     : types
@@ -33,7 +34,7 @@ export default function CleaningTypesPage() {
     if (!input.trim()) return
     await localSupplyStorage.saveCleaningType({
       id: crypto.randomUUID(),
-      petId: selectedPetId ?? undefined,  // 선택된 Pet이 있으면 귀속
+      petId: newPetId ?? undefined,
       name: input.trim(),
       color,
       createdAt: new Date().toISOString(),
@@ -77,6 +78,47 @@ export default function CleaningTypesPage() {
       {/* 추가 폼 */}
       <div className="rounded-2xl bg-white p-4 shadow-sm mb-4 space-y-3">
         <ColorPicker value={color} onChange={setColor} />
+
+        {/* 동물 선택 (펫이 있을 때만 표시) */}
+        {pets.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setNewPetId(null)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-colors ${
+                newPetId === null
+                  ? 'bg-gray-700 border-gray-700 text-white'
+                  : 'bg-gray-100 border-transparent text-gray-500'
+              }`}
+            >
+              공통
+            </button>
+            {pets.map((pet) => {
+              const selected = newPetId === pet.id
+              const petColor = pet.color ?? DEFAULT_COLOR
+              return (
+                <button
+                  key={pet.id}
+                  type="button"
+                  onClick={() => setNewPetId(pet.id)}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                  style={
+                    selected
+                      ? { backgroundColor: petColor, borderColor: petColor, color: '#fff' }
+                      : { backgroundColor: '#f3f4f6', borderColor: 'transparent', color: '#4b5563' }
+                  }
+                >
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: selected ? '#fff' : petColor }}
+                  />
+                  {pet.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         <div className="flex gap-2">
           <input
             type="text"
@@ -102,53 +144,62 @@ export default function CleaningTypesPage() {
         </div>
       ) : (
         <ul className="space-y-2">
-          {filteredTypes.map((type) => (
-            <li key={type.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-              {editingId === type.id ? (
-                <div className="space-y-2">
-                  <ColorPicker value={editColor} onChange={setEditColor} />
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editInput}
-                      onChange={(e) => setEditInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleEdit(type.id)}
-                      autoFocus
-                      className="flex-1 rounded-lg border border-green-400 px-2 py-1 text-sm focus:outline-none"
-                    />
-                    <button onClick={() => handleEdit(type.id)} className="text-xs text-green-600 font-medium">저장</button>
-                    <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
+          {filteredTypes.map((type) => {
+            const ownerPet = pets.find((p) => p.id === type.petId)
+            return (
+              <li key={type.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+                {editingId === type.id ? (
+                  <div className="space-y-2">
+                    <ColorPicker value={editColor} onChange={setEditColor} />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editInput}
+                        onChange={(e) => setEditInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleEdit(type.id)}
+                        autoFocus
+                        className="flex-1 rounded-lg border border-green-400 px-2 py-1 text-sm focus:outline-none"
+                      />
+                      <button onClick={() => handleEdit(type.id)} className="text-xs text-green-600 font-medium">저장</button>
+                      <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span
-                    className="h-4 w-4 shrink-0 rounded-full"
-                    style={{ backgroundColor: type.color ?? DEFAULT_COLOR }}
-                  />
-                  <span className="flex-1 text-sm font-medium text-gray-800">{type.name}</span>
-                  <button
-                    onClick={() => startEdit(type)}
-                    className="text-gray-300 hover:text-gray-500 transition-colors"
-                    aria-label="수정"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(type.id)}
-                    className="text-gray-300 hover:text-red-400 transition-colors"
-                    aria-label="삭제"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-4 w-4 shrink-0 rounded-full"
+                      style={{ backgroundColor: type.color ?? DEFAULT_COLOR }}
+                    />
+                    <span className="flex-1 text-sm font-medium text-gray-800">{type.name}</span>
+                    {/* 귀속 펫 표시 */}
+                    {pets.length > 0 && (
+                      <span className="text-xs text-gray-400 mr-1">
+                        {ownerPet ? ownerPet.name : '공통'}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => startEdit(type)}
+                      className="text-gray-300 hover:text-gray-500 transition-colors"
+                      aria-label="수정"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(type.id)}
+                      className="text-gray-300 hover:text-red-400 transition-colors"
+                      aria-label="삭제"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
