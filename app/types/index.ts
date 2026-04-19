@@ -1,7 +1,8 @@
 export interface Pet {
   id: string
   name: string
-  color?: string  // UI 구분용 hex 색상
+  species?: string  // 종류 (예: 강아지, 고양이 등)
+  color?: string    // UI 구분용 hex 색상
   createdAt: string
 }
 

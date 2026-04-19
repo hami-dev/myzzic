@@ -6,28 +6,138 @@ import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { Pet } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
-import ColorPicker from '@/app/components/ColorPicker'
+
+const SPECIES_OPTIONS = ['강아지', '고양이', '햄스터', '토끼', '새', '기타']
+
+const MODAL_COLORS = [
+  '#F07878', '#4DCAAA', '#4A9CC8', '#E8906A', '#7CCAB8',
+  '#F2D45C', '#A07CD4', '#7BBCE8', '#E8B882', '#7CC896',
+]
+
+function PetModal({
+  title,
+  initialName = '',
+  initialSpecies = '',
+  initialColor = MODAL_COLORS[0],
+  submitLabel,
+  onClose,
+  onSubmit,
+}: {
+  title: string
+  initialName?: string
+  initialSpecies?: string
+  initialColor?: string
+  submitLabel: string
+  onClose: () => void
+  onSubmit: (name: string, species: string, color: string) => Promise<void>
+}) {
+  const [name, setName] = useState(initialName)
+  const [species, setSpecies] = useState(initialSpecies)
+  const [color, setColor] = useState(
+    MODAL_COLORS.includes(initialColor) ? initialColor : MODAL_COLORS[0]
+  )
+
+  const handleSubmit = async () => {
+    if (!name.trim()) return
+    await onSubmit(name.trim(), species, color)
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="w-full max-w-md rounded-3xl bg-white px-6 pt-6 pb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-gray-800">{title}</h2>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600" aria-label="닫기">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">이름</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSubmit() }}
+              placeholder="이름을 입력하세요"
+              autoFocus
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:outline-none focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">종류</label>
+            <div className="grid grid-cols-3 gap-2">
+              {SPECIES_OPTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSpecies(species === s ? '' : s)}
+                  className={`rounded-xl border py-2.5 text-sm font-medium transition-colors ${
+                    species === s
+                      ? 'border-blue-400 bg-blue-50 text-blue-600'
+                      : 'border-gray-200 bg-white text-gray-600'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">식별 색상</label>
+            <div className="grid grid-cols-5 gap-2">
+              {MODAL_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={`h-14 rounded-2xl transition-transform active:scale-95 ${
+                    color === c ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                  }`}
+                  style={{ backgroundColor: c }}
+                  aria-label={c}
+                />
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={!name.trim()}
+            className="w-full rounded-2xl bg-gray-700 py-4 text-sm font-semibold text-white disabled:opacity-40 active:bg-gray-800"
+          >
+            {submitLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function PetsPage() {
   const router = useRouter()
   const { pets, reload } = usePet()
-  const [input, setInput] = useState('')
-  const [color, setColor] = useState(DEFAULT_COLOR)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editInput, setEditInput] = useState('')
-  const [editColor, setEditColor] = useState(DEFAULT_COLOR)
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [editingPet, setEditingPet] = useState<Pet | null>(null)
 
-  const handleAdd = async () => {
-    if (!input.trim()) return
+  const handleAdd = async (name: string, species: string, color: string) => {
     try {
       await localSupplyStorage.savePet({
         id: crypto.randomUUID(),
-        name: input.trim(),
+        name,
+        species: species || undefined,
         color,
         createdAt: new Date().toISOString(),
       })
-      setInput('')
-      setColor(DEFAULT_COLOR)
+      setIsAddOpen(false)
     } catch {
       alert('반려동물 추가에 실패했어요. 다시 시도해주세요.')
     } finally {
@@ -35,13 +145,11 @@ export default function PetsPage() {
     }
   }
 
-  const handleEdit = async (id: string) => {
-    if (!editInput.trim()) return
-    const pet = pets.find((p) => p.id === id)
-    if (!pet) return
+  const handleEdit = async (name: string, species: string, color: string) => {
+    if (!editingPet) return
     try {
-      await localSupplyStorage.savePet({ ...pet, name: editInput.trim(), color: editColor })
-      setEditingId(null)
+      await localSupplyStorage.savePet({ ...editingPet, name, species: species || undefined, color })
+      setEditingPet(null)
     } catch {
       alert('수정에 실패했어요. 다시 시도해주세요.')
     } finally {
@@ -71,101 +179,91 @@ export default function PetsPage() {
     }
   }
 
-  const startEdit = (pet: Pet) => {
-    setEditingId(pet.id)
-    setEditInput(pet.name)
-    setEditColor(pet.color ?? DEFAULT_COLOR)
-  }
-
   return (
     <div className="px-4 py-6 space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.back()}
+            className="-ml-2 p-2 text-gray-500 hover:text-gray-700"
+            aria-label="뒤로"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-xl font-bold text-gray-800">반려동물 관리</h1>
+        </div>
         <button
-          onClick={() => router.back()}
-          className="-ml-2 p-2 text-gray-500 hover:text-gray-700"
-          aria-label="뒤로"
+          onClick={() => setIsAddOpen(true)}
+          className="rounded-xl bg-green-600 px-3 py-1.5 text-xs text-white shadow-sm active:bg-green-700"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
+          + 추가
         </button>
-        <h1 className="text-xl font-bold text-gray-800">반려동물 관리</h1>
       </div>
 
-      <section>
-        <div className="rounded-2xl bg-white p-4 shadow-sm mb-3 space-y-3">
-          <ColorPicker value={color} onChange={setColor} />
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              placeholder="예: 코코, 햄순이"
-              className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-green-500 focus:outline-none"
-            />
-            <button
-              onClick={handleAdd}
-              className="rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm active:bg-green-700"
-            >
-              추가
-            </button>
-          </div>
+      {pets.length === 0 ? (
+        <div
+          className="rounded-2xl bg-white p-8 text-center shadow-sm cursor-pointer"
+          onClick={() => setIsAddOpen(true)}
+        >
+          <p className="text-sm text-gray-400">반려동물을 추가해보세요</p>
         </div>
+      ) : (
+        <ul className="space-y-2">
+          {pets.map((pet) => (
+            <li key={pet.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: pet.color ?? DEFAULT_COLOR }} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-gray-800">{pet.name}</span>
+                  {pet.species && <span className="ml-1.5 text-xs text-gray-400">{pet.species}</span>}
+                </div>
+                <button
+                  onClick={() => setEditingPet(pet)}
+                  className="text-gray-300 hover:text-gray-500 transition-colors"
+                  aria-label="수정"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleDelete(pet.id)}
+                  className="text-gray-300 hover:text-red-400 transition-colors"
+                  aria-label="삭제"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        {pets.length === 0 ? (
-          <div className="rounded-2xl bg-white p-6 text-center text-sm text-gray-400 shadow-sm">
-            반려동물을 추가해보세요
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {pets.map((pet) => (
-              <li key={pet.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                {editingId === pet.id ? (
-                  <div className="space-y-2">
-                    <ColorPicker value={editColor} onChange={setEditColor} />
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={editInput}
-                        onChange={(e) => setEditInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleEdit(pet.id)}
-                        autoFocus
-                        className="flex-1 rounded-lg border border-green-400 px-2 py-1 text-sm focus:outline-none"
-                      />
-                      <button onClick={() => handleEdit(pet.id)} className="text-xs text-green-600 font-medium">저장</button>
-                      <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: pet.color ?? DEFAULT_COLOR }} />
-                    <span className="flex-1 text-sm font-medium text-gray-800">{pet.name}</span>
-                    <button
-                      onClick={() => startEdit(pet)}
-                      className="text-gray-300 hover:text-gray-500 transition-colors"
-                      aria-label="수정"
-                    >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(pet.id)}
-                      className="text-gray-300 hover:text-red-400 transition-colors"
-                      aria-label="삭제"
-                    >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {isAddOpen && (
+        <PetModal
+          title="새 반려동물 추가"
+          submitLabel="추가하기"
+          onClose={() => setIsAddOpen(false)}
+          onSubmit={handleAdd}
+        />
+      )}
+
+      {editingPet && (
+        <PetModal
+          key={editingPet.id}
+          title="반려동물 수정"
+          initialName={editingPet.name}
+          initialSpecies={editingPet.species ?? ''}
+          initialColor={editingPet.color ?? MODAL_COLORS[0]}
+          submitLabel="저장하기"
+          onClose={() => setEditingPet(null)}
+          onSubmit={handleEdit}
+        />
+      )}
     </div>
   )
 }
