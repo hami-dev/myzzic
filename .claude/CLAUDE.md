@@ -42,8 +42,7 @@ app/
 
 ## 코드 컨벤션
 
-- 컴포넌트 파일명: PascalCase (`PetCard.tsx`)
-- 훅/유틸 파일명: camelCase (`usePet.ts`, `formatDate.ts`)
+@CONVENTION.md
 
 ## 주의사항
 
