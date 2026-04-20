@@ -55,35 +55,41 @@ export default function NewFoodPage() {
   }
 
   return (
-    <div className="px-4 py-6">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gray-500">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-bold text-gray-800">식품 추가</h1>
+    <div className="relative pb-28">
+      <div className="px-5 pb-4 pt-8">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.back()}
+            className="-ml-2 p-2 text-gray-500 hover:text-gray-700"
+            aria-label="뒤로"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-3xl font-bold tracking-tight text-fg">식품 추가</h1>
+        </div>
       </div>
 
       {categories.length === 0 ? (
-        <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500 mb-3">카테고리를 먼저 등록해주세요</p>
+        <div className="mx-5 rounded-2xl border border-dashed border-white/60 bg-white/40 p-8 text-center backdrop-blur-sm">
+          <span className="mb-2 block text-2xl opacity-40">🥫</span>
+          <p className="mb-3 text-sm text-gray-500">카테고리를 먼저 등록해주세요</p>
           <button
             onClick={() => router.push('/food/categories')}
-            className="text-sm text-green-600 font-medium"
+            className="text-sm font-medium text-accent-deep"
           >
             카테고리 등록하러 가기
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="rounded-2xl bg-white p-4 shadow-sm space-y-4">
-
-            {/* 반려동물 선택 (복수 가능, 등록된 Pet이 있을 때만 표시) */}
+        <form onSubmit={handleSubmit} className="space-y-4 px-5">
+          <div className="space-y-4 rounded-[18px] border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
+            {/* 반려동물 선택 */}
             {pets.length > 0 && (
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-2 block">
-                  반려동물 <span className="text-gray-400 font-normal">(선택 없음 = 공유)</span>
+                <label className="mb-2 block text-xs font-medium text-gray-500">
+                  반려동물 <span className="font-normal text-gray-400">(선택 없음 = 공유)</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {pets.map((pet) => {
@@ -94,16 +100,13 @@ export default function NewFoodPage() {
                         key={pet.id}
                         type="button"
                         onClick={() => togglePet(pet.id)}
-                        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                        className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                         style={selected
                           ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                          : { backgroundColor: '#f3f4f6', borderColor: 'transparent', color: '#4b5563' }
+                          : { backgroundColor: 'rgba(255,255,255,0.6)', borderColor: 'rgba(255,255,255,0.5)', color: '#4b5563' }
                         }
                       >
-                        <span
-                          className="h-2 w-2 rounded-full shrink-0"
-                          style={{ backgroundColor: selected ? '#fff' : color }}
-                        />
+                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: selected ? '#fff' : color }} />
                         {pet.name}
                       </button>
                     )
@@ -113,11 +116,11 @@ export default function NewFoodPage() {
             )}
 
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">카테고리</label>
+              <label className="mb-1.5 block text-xs font-medium text-gray-500">카테고리</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 focus:border-green-500 focus:outline-none"
+                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 focus:border-accent focus:outline-none"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -126,32 +129,33 @@ export default function NewFoodPage() {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">식품 이름</label>
+              <label className="mb-1.5 block text-xs font-medium text-gray-500">식품 이름</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="예: 해바라기씨"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-green-500 focus:outline-none"
+                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">유통기한</label>
+              <label className="mb-1.5 block text-xs font-medium text-gray-500">유통기한</label>
               <input
                 type="date"
                 value={expiresAt}
                 onChange={(e) => setExpiresAt(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 focus:border-green-500 focus:outline-none"
+                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 focus:border-accent focus:outline-none"
               />
             </div>
           </div>
 
-          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          {error && <p className="text-center text-xs text-red-500">{error}</p>}
 
           <button
             type="submit"
-            className="w-full rounded-2xl bg-green-600 py-3.5 text-sm font-semibold text-white shadow-sm active:bg-green-700"
+            className="w-full rounded-2xl bg-accent py-3.5 text-sm font-semibold text-white"
+            style={{ boxShadow: '0 4px 14px -4px rgba(242,184,162,0.6)' }}
           >
             저장
           </button>

@@ -19,7 +19,6 @@ function isValidDateStr(str: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str).getTime())
 }
 
-// 선택 키: "typeId::petId" 형식. petId 없으면 "typeId::"
 function makeKey(typeId: string, petId?: string) {
   return `${typeId}::${petId ?? ''}`
 }
@@ -31,7 +30,6 @@ function parseKey(key: string): { typeId: string; petId: string | undefined } {
   return { typeId, petId }
 }
 
-// 해당 (타입, 펫) 기준 마지막 청소 경과일
 function daysSince(typeId: string, petId: string | undefined, records: CleaningRecord[]): number | null {
   const last = records
     .filter((r) => r.cleaningTypeId === typeId && (petId ? (r.petId === petId || !r.petId) : true))
@@ -79,7 +77,6 @@ function CleaningRecordForm() {
       setError('청소 종류를 하나 이상 선택해주세요')
       return
     }
-    // 중복 체크: 같은 날 (typeId, petId) 조합이 이미 있는지
     const duplicates = [...selectedKeys].filter((key) => {
       const { typeId, petId } = parseKey(key)
       return records.some(
@@ -117,7 +114,6 @@ function CleaningRecordForm() {
 
   const isGrouped = pets.length > 1
 
-  // 펫별 그룹: 해당 펫 귀속 타입 + 공통 타입
   const groups = isGrouped
     ? pets.map((pet) => ({
         pet,
@@ -128,37 +124,44 @@ function CleaningRecordForm() {
   const hasAnyTypes = groups.some((g) => g.types.length > 0)
 
   return (
-    <div className="px-4 py-6">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gray-500">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-bold text-gray-800">청소 기록</h1>
+    <div className="relative pb-28">
+      <div className="px-5 pb-4 pt-8">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.back()}
+            className="-ml-2 p-2 text-gray-500 hover:text-gray-700"
+            aria-label="뒤로"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-3xl font-bold tracking-tight text-fg">청소 기록</h1>
+        </div>
       </div>
 
       {!hasAnyTypes ? (
-        <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500 mb-3">청소 종류를 먼저 등록해주세요</p>
+        <div className="mx-5 rounded-2xl border border-dashed border-white/60 bg-white/40 p-8 text-center backdrop-blur-sm">
+          <span className="mb-2 block text-2xl opacity-40">🧹</span>
+          <p className="mb-3 text-sm text-gray-500">청소 종류를 먼저 등록해주세요</p>
           <button
             onClick={() => router.push('/care/types')}
-            className="text-sm text-green-600 font-medium"
+            className="text-sm font-medium text-accent-deep"
           >
             청소 종류 등록하러 가기
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 px-5">
           {/* 날짜 */}
-          <div className="rounded-2xl bg-white p-4 shadow-sm">
-            <label className="text-xs font-medium text-gray-500 mb-1.5 block">날짜</label>
+          <div className="rounded-[18px] border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
+            <label className="mb-1.5 block text-xs font-medium text-gray-500">날짜</label>
             <input
               type="date"
               value={date}
               max={todayStr()}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 focus:border-green-500 focus:outline-none"
+              className="w-full rounded-xl border border-white/60 bg-white/60 px-3 py-2.5 text-sm text-gray-800 focus:border-accent focus:outline-none"
             />
           </div>
 
@@ -167,9 +170,17 @@ function CleaningRecordForm() {
             {groups.map(({ pet, types }) => {
               if (types.length === 0) return null
               return (
-                <div key={pet?.id ?? 'flat'} className="rounded-2xl bg-white p-4 shadow-sm">
+                <div key={pet?.id ?? 'flat'} className="rounded-[18px] border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
                   {isGrouped && pet && (
-                    <p className="text-xs font-semibold text-gray-400 mb-2">{pet.name}</p>
+                    <div className="mb-2 flex items-center gap-2">
+                      <div
+                        className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                        style={{ backgroundColor: pet.color ?? DEFAULT_COLOR }}
+                      >
+                        {pet.name[0]}
+                      </div>
+                      <p className="text-sm font-semibold text-gray-700">{pet.name}</p>
+                    </div>
                   )}
                   <ul className="space-y-1">
                     {types.map((type) => {
@@ -183,14 +194,14 @@ function CleaningRecordForm() {
                           <button
                             type="button"
                             onClick={() => toggleKey(selKey)}
-                            className={`w-full flex items-center gap-3 rounded-xl px-3 py-3 transition-colors ${
-                              selected ? 'bg-gray-100' : 'hover:bg-gray-50'
+                            className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 transition-colors ${
+                              selected ? 'bg-white/80' : 'hover:bg-white/50'
                             }`}
                           >
-                            <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                            <span className="flex-1 text-left text-sm font-medium text-gray-800">{type.name}</span>
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="flex-1 text-left text-sm font-semibold text-gray-800">{type.name}</span>
                             {selected ? (
-                              <svg className="h-4 w-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <svg className="h-4 w-4 shrink-0 text-accent-deep" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                               </svg>
                             ) : (
@@ -206,11 +217,12 @@ function CleaningRecordForm() {
             })}
           </div>
 
-          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          {error && <p className="text-center text-xs text-red-500">{error}</p>}
 
           <button
             type="submit"
-            className="w-full rounded-2xl bg-green-600 py-3.5 text-sm font-semibold text-white shadow-sm active:bg-green-700"
+            className="w-full rounded-2xl bg-accent py-3.5 text-sm font-semibold text-white"
+            style={{ boxShadow: '0 4px 14px -4px rgba(242,184,162,0.6)' }}
           >
             저장
           </button>

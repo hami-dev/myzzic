@@ -9,25 +9,29 @@ const menus = [
 
 export default function SettingsPage() {
   return (
-    <div className="px-4 py-6 space-y-6">
-      <h1 className="text-xl font-bold text-gray-800">설정</h1>
+    <div className="relative pb-28">
+      <div className="px-5 pb-4 pt-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">설정</h1>
+      </div>
 
-      <ul className="space-y-2">
-        {menus.map(({ href, label, icon: Icon }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm active:bg-gray-50"
-            >
-              <Icon className="h-5 w-5 text-gray-500" />
-              <span className="flex-1 text-sm font-medium text-gray-800">{label}</span>
-              <svg className="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="px-5">
+        <ul className="space-y-2">
+          {menus.map(({ href, label, icon: Icon }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className="flex items-center gap-3 rounded-[18px] border border-white/50 bg-white/60 px-4 py-3.5 shadow-sm backdrop-blur-sm transition-colors active:bg-white/80"
+              >
+                <Icon className="h-5 w-5 text-gray-500" />
+                <span className="flex-1 text-sm font-semibold text-gray-800">{label}</span>
+                <svg className="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }

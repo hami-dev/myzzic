@@ -47,9 +47,9 @@ function PetModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-3xl bg-white px-6 pt-6 pb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-gray-800">{title}</h2>
+      <div className="w-full max-w-md rounded-3xl border border-white/50 bg-white/85 px-6 pb-8 pt-6 shadow-xl backdrop-blur-xl">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600" aria-label="닫기">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -59,7 +59,7 @@ function PetModal({
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">이름</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">이름</label>
             <input
               type="text"
               value={name}
@@ -67,12 +67,12 @@ function PetModal({
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSubmit() }}
               placeholder="이름을 입력하세요"
               autoFocus
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:outline-none focus:bg-white"
+              className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 backdrop-blur-sm focus:border-accent focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">종류</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">종류</label>
             <div className="grid grid-cols-3 gap-2">
               {SPECIES_OPTIONS.map((s) => (
                 <button
@@ -81,8 +81,8 @@ function PetModal({
                   onClick={() => setSpecies(species === s ? '' : s)}
                   className={`rounded-xl border py-2.5 text-sm font-medium transition-colors ${
                     species === s
-                      ? 'border-blue-400 bg-blue-50 text-blue-600'
-                      : 'border-gray-200 bg-white text-gray-600'
+                      ? 'border-accent bg-accent/10 text-accent-deep'
+                      : 'border-white/60 bg-white/60 text-gray-600'
                   }`}
                 >
                   {s}
@@ -92,7 +92,7 @@ function PetModal({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">식별 색상</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">식별 색상</label>
             <div className="grid grid-cols-5 gap-2">
               {MODAL_COLORS.map((c) => (
                 <button
@@ -112,7 +112,7 @@ function PetModal({
           <button
             onClick={handleSubmit}
             disabled={!name.trim()}
-            className="w-full rounded-2xl bg-gray-700 py-4 text-sm font-semibold text-white disabled:opacity-40 active:bg-gray-800"
+            className="w-full rounded-2xl bg-fg py-4 text-sm font-semibold text-white disabled:opacity-40 active:opacity-80"
           >
             {submitLabel}
           </button>
@@ -180,48 +180,52 @@ export default function PetsPage() {
   }
 
   return (
-    <div className="px-4 py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="relative pb-28">
+      <div className="px-5 pb-4 pt-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.back()}
+              className="-ml-2 p-2 text-gray-500 hover:text-gray-700"
+              aria-label="뒤로"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">반려동물 관리</h1>
+          </div>
           <button
-            onClick={() => router.back()}
-            className="-ml-2 p-2 text-gray-500 hover:text-gray-700"
-            aria-label="뒤로"
+            onClick={() => setIsAddOpen(true)}
+            className="mt-1 rounded-full bg-accent px-3.5 py-1.5 text-xs font-medium text-white shadow-sm"
+            style={{ boxShadow: '0 4px 14px -4px rgba(242,184,162,0.6)' }}
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+            + 추가
           </button>
-          <h1 className="text-xl font-bold text-gray-800">반려동물 관리</h1>
         </div>
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="rounded-xl bg-green-600 px-3 py-1.5 text-xs text-white shadow-sm active:bg-green-700"
-        >
-          + 추가
-        </button>
       </div>
 
-      {pets.length === 0 ? (
-        <div
-          className="rounded-2xl bg-white p-8 text-center shadow-sm cursor-pointer"
-          onClick={() => setIsAddOpen(true)}
-        >
-          <p className="text-sm text-gray-400">반려동물을 추가해보세요</p>
-        </div>
-      ) : (
-        <ul className="space-y-2">
-          {pets.map((pet) => (
-            <li key={pet.id} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2">
+      <div className="px-5">
+        {pets.length === 0 ? (
+          <div
+            className="cursor-pointer rounded-2xl border border-dashed border-white/60 bg-white/40 p-8 text-center backdrop-blur-sm"
+            onClick={() => setIsAddOpen(true)}
+          >
+            <span className="mb-2 block text-2xl opacity-40">🐾</span>
+            <p className="text-sm text-gray-400">반려동물을 추가해보세요</p>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {pets.map((pet) => (
+              <li key={pet.id} className="flex items-center gap-2 rounded-[18px] border border-white/50 bg-white/60 px-4 py-3.5 shadow-sm backdrop-blur-sm">
                 <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: pet.color ?? DEFAULT_COLOR }} />
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-gray-800">{pet.name}</span>
+                <div className="min-w-0 flex-1">
+                  <span className="text-sm font-semibold text-gray-800">{pet.name}</span>
                   {pet.species && <span className="ml-1.5 text-xs text-gray-400">{pet.species}</span>}
                 </div>
                 <button
                   onClick={() => setEditingPet(pet)}
-                  className="text-gray-300 hover:text-gray-500 transition-colors"
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600"
                   aria-label="수정"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -230,18 +234,16 @@ export default function PetsPage() {
                 </button>
                 <button
                   onClick={() => handleDelete(pet.id)}
-                  className="text-gray-300 hover:text-red-400 transition-colors"
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-black/5 hover:text-red-400"
                   aria-label="삭제"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
+                  ×
                 </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {isAddOpen && (
         <PetModal
