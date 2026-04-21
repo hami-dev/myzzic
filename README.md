@@ -1,3 +1,4 @@
+
 # 🐹 myzzic
 
 저는 햄스터와 같이 살고 있어요. 
@@ -12,7 +13,7 @@
 
 | 청소 | 식품 |
 |--|--|
-| <img width="360" height="807" alt="스크린샷 2026-04-22 오전 12 19 51" src="https://github.com/user-attachments/assets/20b1e724-bcd7-43f1-b5bc-0278cbfc4ff6" />  |  <img width="360" height="807" alt="스크린샷 2026-04-22 오전 12 20 49" src="https://github.com/user-attachments/assets/1eda27f4-ea3f-46a4-a612-607a30020313" /> |
+| <img width="363" height="808" alt="스크린샷 2026-04-22 오전 12 26 05" src="https://github.com/user-attachments/assets/895fce63-ea2b-4954-9033-3b57dcd702d0" />  |  <img width="360" height="807" alt="스크린샷 2026-04-22 오전 12 20 49" src="https://github.com/user-attachments/assets/1eda27f4-ea3f-46a4-a612-607a30020313" /> |
 
 
 
