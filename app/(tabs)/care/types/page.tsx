@@ -15,9 +15,11 @@ export default function CleaningTypesPage() {
   const [input, setInput] = useState('')
   const [color, setColor] = useState(DEFAULT_COLOR)
   const [newPetId, setNewPetId] = useState<string | null>(null)
+  const [reminderDays, setReminderDays] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editInput, setEditInput] = useState('')
   const [editColor, setEditColor] = useState(DEFAULT_COLOR)
+  const [editReminderDays, setEditReminderDays] = useState('')
 
   const load = async () => {
     setTypes(await localSupplyStorage.getCleaningTypes())
@@ -32,15 +34,18 @@ export default function CleaningTypesPage() {
 
   const handleAdd = async () => {
     if (!input.trim()) return
+    const days = parseInt(reminderDays)
     await localSupplyStorage.saveCleaningType({
       id: crypto.randomUUID(),
       petId: newPetId ?? undefined,
       name: input.trim(),
       color,
+      reminderDays: days > 0 ? days : undefined,
       createdAt: new Date().toISOString(),
     })
     setInput('')
     setColor(DEFAULT_COLOR)
+    setReminderDays('')
     await load()
   }
 
@@ -48,7 +53,8 @@ export default function CleaningTypesPage() {
     if (!editInput.trim()) return
     const type = types.find((t) => t.id === id)
     if (!type) return
-    await localSupplyStorage.saveCleaningType({ ...type, name: editInput.trim(), color: editColor })
+    const days = parseInt(editReminderDays)
+    await localSupplyStorage.saveCleaningType({ ...type, name: editInput.trim(), color: editColor, reminderDays: days > 0 ? days : undefined })
     setEditingId(null)
     await load()
   }
@@ -62,6 +68,7 @@ export default function CleaningTypesPage() {
     setEditingId(type.id)
     setEditInput(type.name)
     setEditColor(type.color ?? DEFAULT_COLOR)
+    setEditReminderDays(type.reminderDays != null ? String(type.reminderDays) : '')
   }
 
   return (
@@ -134,6 +141,14 @@ export default function CleaningTypesPage() {
             placeholder="예: 쳇바퀴 소독"
             className="flex-1 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-accent focus:outline-none"
           />
+          <input
+            type="number"
+            value={reminderDays}
+            onChange={(e) => setReminderDays(e.target.value)}
+            placeholder="주기(일)"
+            min="1"
+            className="w-20 rounded-xl border border-white/60 bg-white/70 px-2.5 py-2.5 text-center text-sm text-gray-800 placeholder-gray-300 focus:border-accent focus:outline-none"
+          />
           <button
             onClick={handleAdd}
             className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm active:opacity-80"
@@ -167,6 +182,14 @@ export default function CleaningTypesPage() {
                         autoFocus
                         className="flex-1 rounded-lg border border-accent bg-white/70 px-2 py-1 text-sm focus:outline-none"
                       />
+                      <input
+                        type="number"
+                        value={editReminderDays}
+                        onChange={(e) => setEditReminderDays(e.target.value)}
+                        placeholder="주기"
+                        min="1"
+                        className="w-16 rounded-lg border border-white/60 bg-white/70 px-2 py-1 text-center text-sm focus:border-accent focus:outline-none"
+                      />
                       <button onClick={() => handleEdit(type.id)} className="text-xs font-medium text-accent-deep">저장</button>
                       <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
                     </div>
@@ -178,9 +201,13 @@ export default function CleaningTypesPage() {
                       style={{ backgroundColor: type.color ?? DEFAULT_COLOR }}
                     />
                     <span className="flex-1 text-sm font-medium text-gray-800">{type.name}</span>
-                    {/* 귀속 펫 표시 */}
+                    {type.reminderDays && (
+                      <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-accent-deep">
+                        {type.reminderDays}일
+                      </span>
+                    )}
                     {pets.length > 0 && (
-                      <span className="text-xs text-gray-400 mr-1">
+                      <span className="mr-1 text-xs text-gray-400">
                         {ownerPet ? ownerPet.name : '공통'}
                       </span>
                     )}

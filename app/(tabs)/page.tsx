@@ -9,19 +9,22 @@ import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils
 import { DEFAULT_COLOR, CLEANING_WARNING_DAYS, CLEANING_CAUTION_DAYS } from '@/app/utils/cleaning'
 
 function toSummary(types: CleaningType[], records: CleaningRecord[], petId?: string) {
-  return types.map((type) => {
-    const lastRecord = records
-      .filter((r) => {
-        if (r.cleaningTypeId !== type.id) return false
-        if (petId) return r.petId === petId || !r.petId
-        return true
-      })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-    const daysSince = lastRecord
-      ? Math.max(0, Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24)))
-      : null
-    return { type, daysSince }
-  })
+  return types
+    .filter((type) => type.reminderDays != null)
+    .map((type) => {
+      const lastRecord = records
+        .filter((r) => {
+          if (r.cleaningTypeId !== type.id) return false
+          if (petId) return r.petId === petId || !r.petId
+          return true
+        })
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+      const daysSince = lastRecord
+        ? Math.max(0, Math.floor((Date.now() - new Date(lastRecord.date).getTime()) / (1000 * 60 * 60 * 24)))
+        : null
+      return { type, daysSince }
+    })
+    .filter(({ type, daysSince }) => daysSince === null || daysSince >= type.reminderDays!)
 }
 
 export default function HomePage() {

@@ -28,6 +28,7 @@ export interface CleaningType {
   petId?: string  // 귀속된 반려동물 id. undefined = 미귀속
   name: string
   color?: string  // hex 색상 (예: '#ef4444'). 미설정 시 DEFAULT_COLOR 사용
+  reminderDays?: number // N일 경과 시 홈 대시보드에 표시. 미설정 시 홈에 미노출
   createdAt: string
 }
 
