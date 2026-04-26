@@ -6,6 +6,7 @@ import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { Pet } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
+import { Input } from '@/app/components/Input'
 
 const SPECIES_OPTIONS = ['강아지', '고양이', '햄스터', '토끼', '새', '기타']
 
@@ -60,14 +61,13 @@ function PetModal({
         <div className="space-y-5">
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">이름</label>
-            <input
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSubmit() }}
               placeholder="이름을 입력하세요"
               autoFocus
-              className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 backdrop-blur-sm focus:border-accent focus:outline-none"
             />
           </div>
 

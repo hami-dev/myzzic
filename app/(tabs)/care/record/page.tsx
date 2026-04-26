@@ -6,6 +6,7 @@ import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { CleaningType, CleaningRecord } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
+import { Input } from '@/app/components/Input'
 
 function todayStr() {
   const now = new Date()
@@ -156,12 +157,11 @@ function CleaningRecordForm() {
           {/* 날짜 */}
           <div className="rounded-[18px] border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
             <label className="mb-1.5 block text-xs font-medium text-gray-500">날짜</label>
-            <input
+            <Input
               type="date"
               value={date}
               max={todayStr()}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-xl border border-white/60 bg-white/60 px-3 py-2.5 text-sm text-gray-800 focus:border-accent focus:outline-none"
             />
           </div>
 

@@ -7,6 +7,7 @@ import { usePet } from '@/app/context/PetContext'
 import type { CleaningType } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 import ColorPicker from '@/app/components/ColorPicker'
+import { Input } from '@/app/components/Input'
 
 export default function CleaningTypeFormPage() {
   const router = useRouter()
@@ -98,53 +99,52 @@ export default function CleaningTypeFormPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 px-5">
-        <div className="space-y-4 rounded-[18px] border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
+      <form onSubmit={handleSubmit} className="px-5">
+        <div className="space-y-5 rounded-[22px] border border-white/50 bg-white/60 p-5 shadow-sm backdrop-blur-sm">
           <div>
-            <label className="mb-2 block text-xs font-medium text-gray-500">색상</label>
+            <label className="mb-2.5 block text-sm font-semibold text-gray-700">색상</label>
             <ColorPicker value={color} onChange={setColor} />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-gray-500">이름</label>
-            <input
+            <label className="mb-2 block text-sm font-semibold text-gray-700">이름</label>
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 쳇바퀴 소독"
               autoFocus
-              className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-accent focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-gray-500">
-              알림 주기 <span className="font-normal text-gray-400">(미입력 시 홈에 미노출)</span>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
+              알림 주기 <span className="text-xs font-normal text-gray-400">(미입력 시 홈에 미노출)</span>
             </label>
-            <div className="flex items-center gap-2">
-              <input
+            <div className="flex items-center gap-2.5">
+              <Input
                 type="number"
                 value={reminderDays}
                 onChange={(e) => setReminderDays(e.target.value)}
                 placeholder="예: 7"
                 min="1"
-                className="w-24 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-accent focus:outline-none"
+                className="!w-24"
               />
-              <span className="text-sm text-gray-400">일마다</span>
+              <span className="text-sm font-medium text-gray-600">일마다</span>
             </div>
           </div>
 
           {pets.length > 0 && (
             <div>
-              <label className="mb-2 block text-xs font-medium text-gray-500">반려동물</label>
+              <label className="mb-2.5 block text-sm font-semibold text-gray-700">반려동물</label>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setPetId(null)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                     petId === null
                       ? 'border-fg bg-fg text-white'
-                      : 'border-white/60 bg-white/60 text-gray-500 backdrop-blur-sm'
+                      : 'border-white/60 bg-white/80 text-gray-600'
                   }`}
                 >
                   공통
@@ -157,15 +157,14 @@ export default function CleaningTypeFormPage() {
                       key={pet.id}
                       type="button"
                       onClick={() => setPetId(pet.id)}
-                      className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
-                      style={
+                      className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                         selected
-                          ? { backgroundColor: petColor, borderColor: petColor, color: '#fff' }
-                          : { backgroundColor: 'rgba(255,255,255,0.6)', borderColor: 'rgba(255,255,255,0.5)', color: '#4b5563' }
-                      }
+                          ? 'border-fg bg-fg text-white'
+                          : 'border-white/60 bg-white/80 text-gray-600'
+                      }`}
                     >
                       <span
-                        className="h-2 w-2 shrink-0 rounded-full"
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
                         style={{ backgroundColor: selected ? '#fff' : petColor }}
                       />
                       {pet.name}
@@ -177,11 +176,11 @@ export default function CleaningTypeFormPage() {
           )}
         </div>
 
-        {error && <p className="text-center text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-3 text-center text-xs text-red-500">{error}</p>}
 
         <button
           type="submit"
-          className="w-full rounded-2xl bg-accent py-3.5 text-sm font-semibold text-white"
+          className="mt-6 w-full rounded-2xl bg-accent py-4 text-[15px] font-semibold text-white"
           style={{ boxShadow: '0 4px 14px -4px rgba(232,144,106,0.6)' }}
         >
           {isEdit ? '저장' : '추가'}

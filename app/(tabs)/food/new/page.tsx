@@ -6,6 +6,7 @@ import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { FoodCategory } from '@/app/types'
 import { DEFAULT_COLOR } from '@/app/utils/cleaning'
+import { Input, Select } from '@/app/components/Input'
 
 export default function NewFoodPage() {
   const router = useRouter()
@@ -117,35 +118,32 @@ export default function NewFoodPage() {
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-500">카테고리</label>
-              <select
+              <Select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 focus:border-accent focus:outline-none"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-500">식품 이름</label>
-              <input
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="예: 해바라기씨"
-                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-500">유통기한</label>
-              <input
+              <Input
                 type="date"
                 value={expiresAt}
                 onChange={(e) => setExpiresAt(e.target.value)}
-                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm text-gray-800 focus:border-accent focus:outline-none"
               />
             </div>
           </div>

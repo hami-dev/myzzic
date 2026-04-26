@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import type { FoodCategory } from '@/app/types'
+import { Input } from '@/app/components/Input'
 
 export default function CategoriesPage() {
   const router = useRouter()
@@ -71,13 +72,13 @@ export default function CategoriesPage() {
       <div className="space-y-4 px-5">
         {/* 추가 입력 */}
         <div className="flex gap-2">
-          <input
+          <Input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             placeholder="새 카테고리 이름"
-            className="flex-1 rounded-xl border border-white/60 bg-white/60 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 shadow-sm backdrop-blur-sm focus:border-accent focus:outline-none"
+            className="!flex-1 !w-auto"
           />
           <button
             onClick={handleAdd}
@@ -99,13 +100,13 @@ export default function CategoriesPage() {
               <li key={cat.id} className="flex items-center gap-2 rounded-[18px] border border-white/50 bg-white/60 px-4 py-3.5 shadow-sm backdrop-blur-sm">
                 {editingId === cat.id ? (
                   <>
-                    <input
+                    <Input
                       type="text"
                       value={editInput}
                       onChange={(e) => setEditInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleEdit(cat.id)}
                       autoFocus
-                      className="flex-1 rounded-lg border border-accent bg-white/70 px-2 py-1 text-sm focus:outline-none"
+                      className="!flex-1 !w-auto !py-1 !px-2"
                     />
                     <button onClick={() => handleEdit(cat.id)} className="text-xs font-medium text-accent-deep">저장</button>
                     <button onClick={() => setEditingId(null)} className="text-xs text-gray-400">취소</button>
