@@ -1,14 +1,14 @@
 'use client'
 
 export const PRESET_COLORS = [
-  { value: '#ef4444', label: '빨강' },
-  { value: '#f97316', label: '주황' },
-  { value: '#eab308', label: '노랑' },
-  { value: '#22c55e', label: '초록' },
-  { value: '#3b82f6', label: '파랑' },
-  { value: '#8b5cf6', label: '보라' },
-  { value: '#ec4899', label: '분홍' },
-  { value: '#6b7280', label: '회색' },
+  { value: '#F2B8A2', label: '살몬' },
+  { value: '#D4B896', label: '골드' },
+  { value: '#B0C4DE', label: '연파랑' },
+  { value: '#B5C9A8', label: '연초록' },
+  { value: '#C3B1D6', label: '라벤더' },
+  { value: '#D6A5B8', label: '핑크' },
+  { value: '#B8A99A', label: '베이지' },
+  { value: '#7A7368', label: '다크브라운' },
 ]
 
 export default function ColorPicker({

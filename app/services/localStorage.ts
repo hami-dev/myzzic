@@ -8,7 +8,47 @@ const KEYS = {
   foods: 'myzzic:foods',
   cleaningTypes: 'myzzic:cleaningTypes',
   cleaningRecords: 'myzzic:cleaningRecords',
+  colorMigrated: 'myzzic:colorMigrated_v1',
 } as const
+
+const OLD_TO_NEW_COLOR: Record<string, string> = {
+  '#ef4444': '#F2B8A2',
+  '#f97316': '#D4B896',
+  '#eab308': '#B0C4DE',
+  '#22c55e': '#B5C9A8',
+  '#3b82f6': '#C3B1D6',
+  '#8b5cf6': '#D6A5B8',
+  '#ec4899': '#B8A99A',
+  '#6b7280': '#7A7368',
+}
+
+function migrateColors(): void {
+  if (typeof window === 'undefined') return
+  if (localStorage.getItem(KEYS.colorMigrated)) return
+
+  const pets = read<Pet>(KEYS.pets)
+  const types = read<CleaningType>(KEYS.cleaningTypes)
+  let changed = false
+
+  for (const pet of pets) {
+    const mapped = pet.color ? OLD_TO_NEW_COLOR[pet.color.toLowerCase()] : undefined
+    if (mapped) { pet.color = mapped; changed = true }
+  }
+  for (const type of types) {
+    const mapped = type.color ? OLD_TO_NEW_COLOR[type.color.toLowerCase()] : undefined
+    if (mapped) { type.color = mapped; changed = true }
+  }
+
+  try {
+    if (changed) {
+      write(KEYS.pets, pets)
+      write(KEYS.cleaningTypes, types)
+    }
+  } catch {
+    return
+  }
+  localStorage.setItem(KEYS.colorMigrated, '1')
+}
 
 /**
  * localStorage에서 JSON 배열을 읽어온다.
@@ -36,6 +76,8 @@ function read<T>(key: string): T[] {
 function write<T>(key: string, data: T[]): void {
   localStorage.setItem(key, JSON.stringify(data))
 }
+
+migrateColors()
 
 /**
  * localStorage 기반 ISupplyStorage 구현체.
