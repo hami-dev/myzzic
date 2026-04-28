@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { FoodCategory } from '@/app/types'
@@ -10,7 +10,12 @@ import { Input, Select } from '@/app/components/Input'
 
 export default function NewFoodPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { pets } = usePet()
+
+  const editId = searchParams.get('id')
+  const isEdit = !!editId
+
   const [categories, setCategories] = useState<FoodCategory[]>([])
   const [categoryId, setCategoryId] = useState('')
   const [selectedPetIds, setSelectedPetIds] = useState<Set<string>>(new Set())
@@ -19,11 +24,27 @@ export default function NewFoodPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    localSupplyStorage.getCategories().then((list) => {
+    const load = async () => {
+      const list = await localSupplyStorage.getCategories()
       setCategories(list)
-      if (list.length > 0) setCategoryId(list[0].id)
-    })
-  }, [])
+
+      if (editId) {
+        const foods = await localSupplyStorage.getFoods()
+        const food = foods.find((f) => f.id === editId)
+        if (!food) {
+          router.back()
+          return
+        }
+        setName(food.name)
+        setCategoryId(food.categoryId)
+        setExpiresAt(food.expiresAt)
+        setSelectedPetIds(new Set(food.petIds))
+      } else if (list.length > 0) {
+        setCategoryId(list[0].id)
+      }
+    }
+    load()
+  }, [editId, router])
 
   const togglePet = (id: string) => {
     setSelectedPetIds((prev) => {
@@ -41,14 +62,30 @@ export default function NewFoodPage() {
       return
     }
     try {
-      await localSupplyStorage.saveFood({
-        id: crypto.randomUUID(),
-        petIds: [...selectedPetIds],
-        categoryId,
-        name: name.trim(),
-        expiresAt,
-        createdAt: new Date().toISOString(),
-      })
+      if (isEdit) {
+        const foods = await localSupplyStorage.getFoods()
+        const existing = foods.find((f) => f.id === editId)
+        if (!existing) {
+          setError('항목을 찾을 수 없어요')
+          return
+        }
+        await localSupplyStorage.saveFood({
+          ...existing,
+          petIds: [...selectedPetIds],
+          categoryId,
+          name: name.trim(),
+          expiresAt,
+        })
+      } else {
+        await localSupplyStorage.saveFood({
+          id: crypto.randomUUID(),
+          petIds: [...selectedPetIds],
+          categoryId,
+          name: name.trim(),
+          expiresAt,
+          createdAt: new Date().toISOString(),
+        })
+      }
       router.back()
     } catch {
       setError('저장 중 오류가 발생했어요. 다시 시도해주세요.')
@@ -68,7 +105,9 @@ export default function NewFoodPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">식품 추가</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-fg">
+            {isEdit ? '식품 수정' : '식품 추가'}
+          </h1>
         </div>
       </div>
 
@@ -155,7 +194,7 @@ export default function NewFoodPage() {
             className="w-full rounded-2xl bg-accent py-3.5 text-sm font-semibold text-white"
             style={{ boxShadow: '0 4px 14px -4px rgba(242,184,162,0.6)' }}
           >
-            저장
+            {isEdit ? '저장' : '추가'}
           </button>
         </form>
       )}
