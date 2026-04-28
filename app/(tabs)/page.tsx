@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { Food, CleaningType, CleaningRecord } from '@/app/types'
-import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils/expiry'
+import { getExpiryStatus, getDaysUntilExpiry, EXPIRY_CARD_BG } from '@/app/utils/expiry'
 import { DEFAULT_COLOR, CLEANING_WARNING_DAYS, CLEANING_CAUTION_DAYS } from '@/app/utils/cleaning'
+import ExpiryBadge from '@/app/components/ExpiryBadge'
 
 function toSummary(types: CleaningType[], records: CleaningRecord[], petId?: string) {
   return types
@@ -77,13 +78,6 @@ export default function HomePage() {
     }))
   }, [isGrouped, pets, cleaningTypes, records])
 
-  const statusColors: Record<string, string> = {
-    expired: 'bg-red-100/80 text-red-600',
-    critical: 'bg-orange-100/80 text-orange-600',
-    warning: 'bg-yellow-100/80 text-yellow-700',
-    fresh: 'bg-green-100/80 text-green-600',
-  }
-
   return (
     <div className="relative pb-28">
       <div className="px-5 pb-4 pt-8">
@@ -106,11 +100,9 @@ export default function HomePage() {
               {urgentFoods.map((food) => {
                 const status = getExpiryStatus(food.expiresAt)
                 return (
-                  <li key={food.id} className="flex items-center justify-between rounded-[18px] border border-white/50 bg-white/60 px-4 py-3.5 shadow-sm backdrop-blur-sm">
+                  <li key={food.id} className={`flex items-center justify-between rounded-[18px] px-4 py-3.5 shadow-sm ${EXPIRY_CARD_BG[status]}`}>
                     <span className="text-sm font-semibold text-gray-800">{food.name}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusColors[status]}`}>
-                      {getExpiryLabel(food.expiresAt)}
-                    </span>
+                    <ExpiryBadge expiresAt={food.expiresAt} />
                   </li>
                 )
               })}

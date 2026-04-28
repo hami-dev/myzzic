@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { Food, FoodCategory } from '@/app/types'
-import { getExpiryStatus, getExpiryLabel, getDaysUntilExpiry } from '@/app/utils/expiry'
+import { getDaysUntilExpiry } from '@/app/utils/expiry'
+import ExpiryBadge from '@/app/components/ExpiryBadge'
 
 export default function FoodPage() {
   const { selectedPetId } = usePet()
@@ -37,13 +38,6 @@ export default function FoodPage() {
   const handleDelete = async (id: string) => {
     await localSupplyStorage.deleteFood(id)
     await load()
-  }
-
-  const statusBadge: Record<string, string> = {
-    expired: 'bg-red-100/80 text-red-600',
-    critical: 'bg-orange-100/80 text-orange-600',
-    warning: 'bg-yellow-100/80 text-yellow-700',
-    fresh: 'bg-green-100/80 text-green-600',
   }
 
   return (
@@ -114,7 +108,6 @@ export default function FoodPage() {
         ) : (
           <ul className="space-y-2">
             {sorted.map((food) => {
-              const status = getExpiryStatus(food.expiresAt)
               const category = categories.find((c) => c.id === food.categoryId)
               return (
                 <li
@@ -126,9 +119,7 @@ export default function FoodPage() {
                     {category && <p className="mt-0.5 text-xs text-gray-400">{category.name}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[status]}`}>
-                      {getExpiryLabel(food.expiresAt)}
-                    </span>
+                    <ExpiryBadge expiresAt={food.expiresAt} />
                     <Link
                       href={`/food/new?id=${food.id}`}
                       className="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600"
