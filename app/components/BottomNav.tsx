@@ -7,6 +7,7 @@ const tabs = [
   { href: '/', label: '홈', icon: HomeIcon },
   { href: '/care', label: '청소', icon: CleanIcon },
   { href: '/food', label: '식품', icon: FoodIcon },
+  { href: '/medical', label: '건강', icon: MedicalIcon },
   { href: '/settings', label: '설정', icon: SettingsIcon },
 ]
 
@@ -63,6 +64,14 @@ function FoodIcon({ active }: { active: boolean }) {
   return (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke={active ? 'var(--color-fg)' : '#9ca3af'} strokeWidth={1.6}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+    </svg>
+  )
+}
+
+function MedicalIcon({ active }: { active: boolean }) {
+  return (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke={active ? 'var(--color-fg)' : '#9ca3af'} strokeWidth={1.6}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
     </svg>
   )
 }

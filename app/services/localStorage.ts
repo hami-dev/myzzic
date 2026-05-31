@@ -1,4 +1,4 @@
-import type { Pet, Food, FoodCategory, CleaningType, CleaningRecord } from '@/app/types'
+import type { Pet, Food, FoodCategory, CleaningType, CleaningRecord, MedicalRecord } from '@/app/types'
 import type { ISupplyStorage } from './storage.interface'
 
 // 네임스페이스 prefix('myzzic:')로 다른 앱의 localStorage 키와 충돌 방지
@@ -8,6 +8,7 @@ const KEYS = {
   foods: 'myzzic:foods',
   cleaningTypes: 'myzzic:cleaningTypes',
   cleaningRecords: 'myzzic:cleaningRecords',
+  medicalRecords: 'myzzic:medicalRecords',
   colorMigrated: 'myzzic:colorMigrated_v1',
 } as const
 
@@ -156,5 +157,19 @@ export const localSupplyStorage: ISupplyStorage = {
   },
   async deleteCleaningRecord(id) {
     write(KEYS.cleaningRecords, read<CleaningRecord>(KEYS.cleaningRecords).filter((r) => r.id !== id))
+  },
+
+  async getMedicalRecords() {
+    return read<MedicalRecord>(KEYS.medicalRecords)
+  },
+  async saveMedicalRecord(record) {
+    const list = read<MedicalRecord>(KEYS.medicalRecords)
+    const idx = list.findIndex((r) => r.id === record.id)
+    if (idx >= 0) list[idx] = record
+    else list.push(record)
+    write(KEYS.medicalRecords, list)
+  },
+  async deleteMedicalRecord(id) {
+    write(KEYS.medicalRecords, read<MedicalRecord>(KEYS.medicalRecords).filter((r) => r.id !== id))
   },
 }

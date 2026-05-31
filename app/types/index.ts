@@ -39,3 +39,16 @@ export interface CleaningRecord {
   date: string // ISO date string (YYYY-MM-DD)
   createdAt: string
 }
+
+export interface MedicalRecord {
+  id: string
+  petId: string
+  date: string // ISO date string (YYYY-MM-DD)
+  hospital: string
+  symptoms: string
+  diagnosis: string
+  prescription: string
+  cost?: number
+  nextVisitDate?: string // ISO date string (YYYY-MM-DD)
+  createdAt: string
+}
