@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
@@ -9,7 +9,7 @@ import { DEFAULT_COLOR } from '@/app/utils/cleaning'
 import ColorPicker from '@/app/components/ColorPicker'
 import { Input } from '@/app/components/Input'
 
-export default function CleaningTypeFormPage() {
+function CleaningTypeForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { pets } = usePet()
@@ -187,5 +187,13 @@ export default function CleaningTypeFormPage() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function CleaningTypeFormPage() {
+  return (
+    <Suspense>
+      <CleaningTypeForm />
+    </Suspense>
   )
 }
