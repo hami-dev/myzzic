@@ -11,9 +11,9 @@
 
 ## Screenshots
 
-| 청소 | 식품 |
-|--|--|
-| <img width="363" height="808" alt="스크린샷 2026-04-22 오전 12 26 05" src="https://github.com/user-attachments/assets/895fce63-ea2b-4954-9033-3b57dcd702d0" />  |  <img width="360" height="807" alt="스크린샷 2026-04-22 오전 12 20 49" src="https://github.com/user-attachments/assets/1eda27f4-ea3f-46a4-a612-607a30020313" /> |
+| 청소 | 식품 | 건강 |
+|--|--|--|
+| <img width="363" height="808" alt="스크린샷 2026-04-22 오전 12 26 05" src="https://github.com/user-attachments/assets/895fce63-ea2b-4954-9033-3b57dcd702d0" />  |  <img width="360" height="807" alt="스크린샷 2026-04-22 오전 12 20 49" src="https://github.com/user-attachments/assets/1eda27f4-ea3f-46a4-a612-607a30020313" /> | *스크린샷 추가 필요* |
 
 
 
@@ -31,10 +31,15 @@
 - 마지막 청소 경과일 표시 (주의/경고 단계)
 - 청소 종류 커스텀 등록 (색상, 반려동물 귀속)
 
+### 🏥 건강 관리
+- 병원 방문 기록 등록 (병원명, 증상, 진단, 처방, 비용)
+- 재방문일 추적 (임박 · 경과 상태 뱃지)
+- 반려동물별 기록 분리
+
 ### 🐶 다중 반려동물
 - 반려동물별 프로필 관리 (이름, 종류, 식별 색상)
-- 펫 필터로 기록 전환
-- 펫별 식품/청소 데이터 분리 관리
+- 펫 필터로 식품/청소/건강 데이터 전환
+- 홈 대시보드 펫별 그룹 뷰
 
 
 ## Tech Stack
@@ -56,12 +61,13 @@ app/
 │   ├── page.tsx         # 홈 (대시보드)
 │   ├── care/            # 청소 관리
 │   ├── food/            # 식품 관리
+│   ├── medical/         # 건강 관리
 │   └── settings/        # 설정 · 반려동물 관리
 ├── components/          # 재사용 UI 컴포넌트
 ├── context/             # React Context (PetContext)
 ├── services/            # 데이터 저장소 (localStorage)
-├── utils/               # 유틸 함수
-└── types.ts             # 타입 정의
+├── types/               # 타입 정의
+└── utils/               # 유틸 함수
 ```
 
 ## Getting Started
