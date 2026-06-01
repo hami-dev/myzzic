@@ -13,7 +13,11 @@
 
 | 청소 | 식품 | 건강 |
 |--|--|--|
-| <img width="363" height="808" alt="스크린샷 2026-04-22 오전 12 26 05" src="https://github.com/user-attachments/assets/895fce63-ea2b-4954-9033-3b57dcd702d0" />  |  <img width="360" height="807" alt="스크린샷 2026-04-22 오전 12 20 49" src="https://github.com/user-attachments/assets/1eda27f4-ea3f-46a4-a612-607a30020313" /> | *스크린샷 추가 필요* |
+| <img width="768" height="1704" alt="screencapture-localhost-3000-care-2026-06-01-23_27_06" src="https://github.com/user-attachments/assets/80e44f8b-5c46-477e-87ed-315d9b4531dc" />  |  <img width="768" height="1704" alt="screencapture-localhost-3000-food-2026-06-01-23_27_13" src="https://github.com/user-attachments/assets/037d2356-a304-4349-bcda-9d971f2d7ee8" /> | <img width="768" height="1704" alt="screencapture-localhost-3000-medical-2026-06-01-23_27_26" src="https://github.com/user-attachments/assets/609f3041-9d1b-4d5f-b4fe-67dd5ed0616b" /> |
+
+
+
+
 
 
 
