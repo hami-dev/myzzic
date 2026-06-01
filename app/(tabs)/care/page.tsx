@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { localSupplyStorage } from '@/app/services/localStorage'
 import { usePet } from '@/app/context/PetContext'
 import type { CleaningType, CleaningRecord } from '@/app/types'
@@ -148,12 +149,20 @@ function CustomCalendar({
   )
 }
 
-export default function CarePage() {
+function CareContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { pets } = usePet()
 
   const [cleaningTypes, setCleaningTypes] = useState<CleaningType[]>([])
   const [records, setRecords] = useState<CleaningRecord[]>([])
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const dateParam = searchParams.get('date')
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) && !isNaN(new Date(dateParam).getTime())) {
+      return new Date(dateParam + 'T00:00:00')
+    }
+    return new Date()
+  })
   const [filterPetId, setFilterPetId] = useState<string | null>(null)
 
   const load = async () => {
@@ -166,6 +175,11 @@ export default function CarePage() {
   }
 
   useEffect(() => { load() }, [])
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date)
+    router.replace(`/care?date=${toDateStr(date)}`, { scroll: false })
+  }
 
   const recordColorsByDate = useMemo(() =>
     records.reduce<Record<string, string[]>>((acc, record) => {
@@ -239,7 +253,7 @@ export default function CarePage() {
       {/* 커스텀 캘린더 */}
       <CustomCalendar
         value={selectedDate}
-        onChange={setSelectedDate}
+        onChange={handleDateChange}
         recordColorsByDate={recordColorsByDate}
       />
 
@@ -364,5 +378,13 @@ function RecordItem({
         </svg>
       </button>
     </li>
+  )
+}
+
+export default function CarePage() {
+  return (
+    <Suspense>
+      <CareContent />
+    </Suspense>
   )
 }

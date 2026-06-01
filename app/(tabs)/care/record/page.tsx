@@ -107,7 +107,7 @@ function CleaningRecordForm() {
           })
         })
       )
-      router.back()
+      router.replace(`/care?date=${date}`)
     } catch {
       setError('저장 중 오류가 발생했어요. 다시 시도해주세요.')
     }
